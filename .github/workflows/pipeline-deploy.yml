@@ -64,8 +64,8 @@ jobs:
         with:
           name: site-data
           path: |
-            site/data/
-            site/exports/
+            site-dev/data/
+            site-dev/exports/
           retention-days: 1
 
   build-frontend:
@@ -115,7 +115,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: site-full
-          path: site/
+          path: site-dev/
           retention-days: 1
 
   deploy:
@@ -131,7 +131,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: site-full
-          path: site/
+          path: site-dev/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -139,7 +139,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site/
+          path: site-dev/
 
       - name: Deploy to GitHub Pages
         id: deployment
