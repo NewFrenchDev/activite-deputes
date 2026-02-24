@@ -34,7 +34,7 @@ fn App() -> impl IntoView {
     provide_store();
 
     view! {
-        <Router base="">
+        <Router base="/activite-deputes">
             <Layout>
                 <Routes>
                     <Route path="/" view=HomePage />
@@ -58,7 +58,7 @@ fn NotFound() -> impl IntoView {
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem;">
             <p style="font-size:3rem;color:var(--text-muted)">404</p>
             <p style="color:var(--text-secondary)">"Page non trouvée"</p>
-            <a href="/" class="btn">"Retour à l'accueil"</a>
+            <a href="/activite-deputes/" class="btn">"Retour à l'accueil"</a>
         </div>
     }
 }
