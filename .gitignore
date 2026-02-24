@@ -1,0 +1,40 @@
+# Rust
+target/
+**/target/
+
+# Frontend / Trunk
+frontend/dist/
+dist/
+pkg/
+
+# Sites générés
+site/
+site-dev/
+
+# Data/caches/téléchargements
+work/
+cache/
+downloads/
+tmp/
+*.log
+
+# Archives
+*.zip
+*.tar.gz
+*.tgz
+*.7z
+
+# Secrets
+.env
+.env.*
+*.key
+*.pem
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+*.orig
+*.rej
