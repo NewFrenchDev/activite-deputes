@@ -109,7 +109,7 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
-        run: trunk build --release --dist ../site
+        run: trunk build --release --dist ../site-dev --public-url /activite-deputes/
 
       - name: Upload full site
         uses: actions/upload-artifact@v4
