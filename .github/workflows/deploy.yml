@@ -1,0 +1,58 @@
+name: Build & Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust + WASM target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install Trunk
+        uses: jetli/trunk-action@v0.5.0
+        with:
+          version: latest
+
+      - name: Build frontend
+        working-directory: frontend
+        run: trunk build --release --public-url /activite-deputes/
+
+      - name: Copy data assets into docs/
+        run: |
+          rm -rf docs
+          cp -r site-dev docs
+          # Copier les données pipeline si elles existent
+          if [ -d site/data ]; then cp -r site/data docs/data; fi
+          if [ -d site/exports ]; then cp -r site/exports docs/exports; fi
+          touch docs/.nojekyll
+
+      - name: Commit & push docs/
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          git diff --cached --quiet || git commit -m "chore: deploy [skip ci]"
+          git push
