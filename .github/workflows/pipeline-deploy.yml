@@ -110,6 +110,9 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         run: trunk build --release --dist ../site-dev --public-url /activite-deputes/
+        
+      - name: Create 404.html for SPA routing
+        run: cp site-dev/index.html site-dev/404.html
 
       - name: Upload full site
         uses: actions/upload-artifact@v4
