@@ -8,7 +8,7 @@ dist/
 pkg/
 
 # Sites générés
-frontend/site
+site/
 site-dev/
 
 # Data/caches/téléchargements
