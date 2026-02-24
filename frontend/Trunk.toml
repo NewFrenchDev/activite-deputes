@@ -1,0 +1,25 @@
+trunk-version = "*"
+
+[build]
+target = "index.html"
+dist = "../site-dev"
+public_url = "/"
+
+[watch]
+watch = ["../site/data", "../site/exports"]
+
+[serve]
+port = 8080
+
+[[hooks]]
+stage = "pre_build"
+command = "echo"
+command_arguments = ["Building activite-deputes frontend..."]
+
+[[hooks]]
+stage = "post_build"
+command = "sh"
+command_arguments = [
+  "-c",
+  'rm -rf "$TRUNK_STAGING_DIR/data" "$TRUNK_STAGING_DIR/exports"; if [ -d ../site/data ]; then cp -a ../site/data "$TRUNK_STAGING_DIR/data"; fi; if [ -d ../site/exports ]; then cp -a ../site/exports "$TRUNK_STAGING_DIR/exports"; fi; echo "Copied pipeline assets into $TRUNK_STAGING_DIR"'
+]

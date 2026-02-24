@@ -13,6 +13,7 @@ site-dev/
 
 # Data/caches/téléchargements
 work/
+.work/
 cache/
 downloads/
 tmp/

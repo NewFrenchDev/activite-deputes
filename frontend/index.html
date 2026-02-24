@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Activité des Députés — Assemblée nationale 17e législature</title>
+  <meta name="description" content="Statistiques d'activité parlementaire observable des députés de l'Assemblée nationale française. Données open data officielles." />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Tailwind CSS via CDN (remplacé par build CLI en prod) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cyan: { 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2' },
+            surface: {
+              900: '#0a0d12',
+              800: '#111827',
+              700: '#1f2937',
+              600: '#374151',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-primary: #0a0d12;
+      --bg-secondary: #111827;
+      --bg-tertiary: #1f2937;
+      --bg-border: #374151;
+      --text-primary: #f9fafb;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      --accent: #22d3ee;
+      --accent-dim: rgba(34, 211, 238, 0.08);
+      --accent-border: rgba(34, 211, 238, 0.2);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+    }
+    html.light {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f9fafb;
+      --bg-tertiary: #f3f4f6;
+      --bg-border: #e5e7eb;
+      --text-primary: #111827;
+      --text-secondary: #4b5563;
+      --text-muted: #9ca3af;
+      --accent: #0891b2;
+      --accent-dim: rgba(8, 145, 178, 0.06);
+      --accent-border: rgba(8, 145, 178, 0.2);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Skeleton animation */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg,
+        var(--bg-tertiary) 25%,
+        var(--bg-secondary) 50%,
+        var(--bg-tertiary) 75%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .skeleton { animation: none; }
+    }
+
+    /* Table styles */
+    .data-table { border-collapse: collapse; width: 100%; }
+    .data-table th {
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.6rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--bg-border);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .data-table th:hover { color: var(--accent); }
+    .data-table th.sorted { color: var(--accent); }
+    .data-table td {
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--bg-border);
+      font-size: 0.82rem;
+      vertical-align: middle;
+    }
+    .data-table tr:hover td { background: var(--accent-dim); }
+    .data-table tr:last-child td { border-bottom: none; }
+
+    /* Rate bar */
+    .rate-bar-bg {
+      background: var(--bg-border);
+      border-radius: 2px;
+      height: 5px;
+      width: 60px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .rate-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+
+    /* KPI card */
+    .kpi-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--bg-border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      transition: border-color 0.2s;
+    }
+    .kpi-card:hover { border-color: var(--accent-border); }
+
+    /* Tooltip */
+    .tooltip-trigger { position: relative; }
+    .tooltip-content {
+      display: none;
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-tertiary);
+      border: 1px solid var(--bg-border);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      width: 220px;
+      z-index: 100;
+      line-height: 1.5;
+      white-space: normal;
+      pointer-events: none;
+    }
+    .tooltip-trigger:hover .tooltip-content { display: block; }
+
+    /* Count-up animation */
+    @keyframes count-up { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .count-up { animation: count-up 0.4s ease forwards; }
+
+    /* Drawer */
+    .filter-drawer {
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .filter-drawer.open { transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .filter-drawer { transition: none; }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    ::-webkit-scrollbar-thumb { background: var(--bg-border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    /* Reveal animation */
+    @keyframes reveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .reveal { animation: reveal 0.35s ease forwards; }
+
+    /* Nav */
+    nav a { transition: color 0.15s; }
+    nav a.active { color: var(--accent); border-bottom: 1px solid var(--accent); }
+
+    /* Badge groupe */
+    .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      border: 1px solid var(--bg-border);
+    }
+
+    /* Input */
+    input[type="text"], select {
+      background: var(--bg-secondary);
+      border: 1px solid var(--bg-border);
+      color: var(--text-primary);
+      border-radius: 6px;
+      padding: 0.45rem 0.75rem;
+      font-size: 0.85rem;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus, select:focus {
+      border-color: var(--accent);
+    }
+    select option { background: var(--bg-secondary); }
+
+    /* Button */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--bg-border);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { opacity: 0.85; color: #000; }
+
+    /* Progress */
+    .participation-good { color: var(--success); }
+    .participation-mid { color: var(--warning); }
+    .participation-low { color: var(--danger); }
+
+    /* Divider */
+    .divider { border: none; border-top: 1px solid var(--bg-border); margin: 1.5rem 0; }
+  </style>
+</head>
+<body class="dark">
+  <div id="app"></div>
+
+  <!-- WASM bundle (généré par trunk) -->
+  <link data-trunk rel="rust" data-wasm-opt="z" />
+</body>
+</html>
