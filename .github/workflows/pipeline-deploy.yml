@@ -10,6 +10,7 @@ on:
     paths:
       - 'pipeline/**'
       - 'frontend/**'
+      - 'docs/**'
       - '.github/workflows/**'
 
 concurrency:
@@ -64,8 +65,8 @@ jobs:
         with:
           name: site-data
           path: |
-            site-dev/data/
-            site-dev/exports/
+            docs/data/
+            docs/exports/
           retention-days: 1
 
   build-frontend:
@@ -82,7 +83,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: site-data
-          path: site-dev/
+          path: docs/
 
       - name: Install Rust + wasm32 target
         uses: dtolnay/rust-toolchain@stable
@@ -109,16 +110,16 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
-        run: trunk build --release --dist ../site-dev --public-url /activite-deputes/
+        run: trunk build --release --dist ../docs --public-url /activite-deputes/
         
       - name: Create 404.html for SPA routing
-        run: cp site-dev/index.html site-dev/404.html
+        run: cp docs/index.html docs/404.html
 
       - name: Upload full site
         uses: actions/upload-artifact@v4
         with:
           name: site-full
-          path: site-dev/
+          path: docs/
           retention-days: 1
 
   deploy:
@@ -134,7 +135,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: site-full
-          path: site-dev/
+          path: docs/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -142,7 +143,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site-dev/
+          path: docs/
 
       - name: Deploy to GitHub Pages
         id: deployment
