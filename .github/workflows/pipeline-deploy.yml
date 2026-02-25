@@ -138,6 +138,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i 's|path="/"|path=""|' frontend/src/lib.rs
           sed -i 's|path="/depute/:id"|path="depute/:id"|' frontend/src/lib.rs
           sed -i 's|path="/comparer"|path="comparer"|' frontend/src/lib.rs
           sed -i 's|path="/exporter"|path="exporter"|' frontend/src/lib.rs
