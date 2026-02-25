@@ -117,7 +117,7 @@ jobs:
           set -euo pipefail
           echo "Before:"
           grep -n '<Router base=' frontend/src/lib.rs || true
-          sed -i '0,/<Router base="\/">/s//<Router base="\/activite-deputes">/' frontend/src/lib.rs
+          sed -i '0,/<Router base="\/">/s//<Router base="\/activite-deputes\/">/' frontend/src/lib.rs
           echo "After:"
           grep -n '<Router base=' frontend/src/lib.rs
           grep -q '<Router base="/activite-deputes">' frontend/src/lib.rs
