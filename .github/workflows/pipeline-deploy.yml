@@ -109,6 +109,25 @@ jobs:
 
       - name: Install wasm-bindgen-cli
         run: cargo install wasm-bindgen-cli --locked
+        
+      # CI-only switch: on adapte le Router pour GitHub Pages sans toucher au repo/local.
+      - name: Patch Router base for GitHub Pages (CI only)
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("frontend/src/lib.rs")
+          s = p.read_text(encoding="utf-8")
+          old = '<Router base="/">'
+          new = '<Router base="/activite-deputes">'
+          if new in s:
+              print("Router base already set for GitHub Pages.")
+          elif old in s:
+              s = s.replace(old, new, 1)
+              p.write_text(s, encoding="utf-8")
+              print("Patched Router base for GitHub Pages.")
+          else:
+              raise SystemExit("ERROR: Router base line not found in frontend/src/lib.rs")
+          PY 
 
       # FIX 1 : on build dans dist/ (pas docs/) pour ne pas écraser les données
       # FIX 2 : --public-url indispensable pour que les assets se chargent sur GitHub Pages
@@ -125,7 +144,9 @@ jobs:
 
       # Nécessaire pour que le refresh / accès direct aux routes SPA ne donne pas 404
       - name: Create 404.html for SPA routing
-        run: cp dist/index.html dist/404.html
+        run: |
+            cp dist/index.html dist/404.html
+            touch dist/.nojekyll
 
       - name: Upload full site
         uses: actions/upload-artifact@v4
