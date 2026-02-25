@@ -33,9 +33,11 @@ pub fn main() {
 fn App() -> impl IntoView {
     // Store global initialisé une seule fois à la racine
     provide_store();
-
+    
+    let base = app_base_path()    
+    
     view! {
-        <Router base="/">
+        <Router base=base>
             <Layout>
                 <Routes>
                     <Route path="/" view=HomePage />
