@@ -138,14 +138,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sed -i 's|path="/"|path=""|' frontend/src/lib.rs
-          sed -i 's|path="/depute/:id"|path="depute/:id"|' frontend/src/lib.rs
-          sed -i 's|path="/comparer"|path="comparer"|' frontend/src/lib.rs
-          sed -i 's|path="/exporter"|path="exporter"|' frontend/src/lib.rs
-          sed -i 's|path="/stats-globales"|path="stats-globales"|' frontend/src/lib.rs
-          sed -i 's|path="/reseau"|path="reseau"|' frontend/src/lib.rs
-          sed -i 's|path="/positions-groupes"|path="positions-groupes"|' frontend/src/lib.rs
-          sed -i 's|path="/methodologie"|path="methodologie"|' frontend/src/lib.rs
           sed -i 's|path="/\*any"|path="*any"|' frontend/src/lib.rs
           echo "=== After CI route patch ==="
           grep -n '<Router base=' frontend/src/lib.rs || true
