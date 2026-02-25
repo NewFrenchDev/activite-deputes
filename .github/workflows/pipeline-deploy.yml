@@ -53,7 +53,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Create work dirs
-        run: mkdir -p pipeline/.work pipeline/.temp_out site/data site/exports
+        run: mkdir -p pipeline/.work pipeline/.temp_out docs/data docs/exports
 
       - name: Run pipeline
         run: cargo run --release --manifest-path pipeline/Cargo.toml
