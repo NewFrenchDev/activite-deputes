@@ -118,6 +118,9 @@ jobs:
           grep -RIn '<Router base=' frontend/src || true
           echo "=== Route path declarations ==="
           grep -RIn '<Route path=' frontend/src || true
+          echo "=== Internal links (A vs a) ==="
+          grep -RIn '<A ' frontend/src || true
+          grep -RIn '<a ' frontend/src || true
         
       # CI-only switch: on adapte le Router pour GitHub Pages sans toucher au repo/local.
       - name: Patch Router base for GitHub Pages (CI only)
