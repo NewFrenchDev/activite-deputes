@@ -117,10 +117,10 @@ jobs:
           set -euo pipefail
           echo "Before:"
           grep -n '<Router base=' frontend/src/lib.rs || true
-          sed -i '0,/<Router base="\/">/s//<Router base="\/activite-deputes\/">/' frontend/src/lib.rs
+          sed -i '0,/<Router base="\/">/s//<Router base="\/activite-deputes">/' frontend/src/lib.rs
           echo "After:"
           grep -n '<Router base=' frontend/src/lib.rs
-          grep -q '<Router base="/activite-deputes/">' frontend/src/lib.rs
+          grep -q '<Router base="/activite-deputes">' frontend/src/lib.rs
 
       # FIX 1 : on build dans dist/ (pas docs/) pour ne pas écraser les données
       # FIX 2 : --public-url indispensable pour que les assets se chargent sur GitHub Pages
@@ -140,6 +140,27 @@ jobs:
         run: |
             cp dist/index.html dist/404.html
             touch dist/.nojekyll
+            
+      - name: Debug site structure before artifact upload
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "PWD=$(pwd)"
+          echo "=== Top-level ==="
+          ls -la
+          echo "=== dist tree (dirs) ==="
+          find dist -maxdepth 4 -type d | sort | sed -n '1,300p' || true
+          echo "=== dist tree (files) ==="
+          find dist -maxdepth 4 -type f | sort | sed -n '1,500p' || true
+          echo "=== Key files checks ==="
+          test -f dist/index.html
+          test -f dist/404.html
+          test -f dist/data/status.json
+          ls -lh dist/index.html dist/404.html dist/data/status.json
+          echo "=== base href in dist/index.html ==="
+          grep -n '<base href=' dist/index.html || true
+          echo "=== frontend asset refs in dist/index.html ==="
+          grep -nE 'frontend-.*\.js|frontend-.*_bg\.wasm' dist/index.html || true
 
       - name: Upload full site
         uses: actions/upload-artifact@v4
@@ -158,6 +179,22 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+      
+    - name: Debug extracted site-full artifact
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "PWD=$(pwd)"
+        echo "=== Top-level after download-artifact ==="
+        ls -la
+        echo "=== Tree (dirs) ==="
+        find . -maxdepth 4 -type d | sort | sed -n '1,300p'
+        echo "=== Tree (files) ==="
+        find . -maxdepth 4 -type f | sort | sed -n '1,500p'
+        echo "=== Candidate roots ==="
+        ls -ld dist docs site 2>/dev/null || true
+        echo "=== Check common expected files ==="
+        test -f dist/index.html || test -f docs/index.html || test -f site/index.html
 
     steps:
       - name: Download full site
@@ -168,6 +205,17 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
+        
+      - name: Sanity check Pages upload path
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Publishing path: dist/"
+          test -d dist
+          test -f dist/index.html
+          test -f dist/404.html
+          test -f dist/data/status.json
+          ls -lh dist/index.html dist/404.html dist/data/status.json
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -177,3 +225,10 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        
+      - name: Verify GitHub Pages base path in built HTML
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '<base href="/activite-deputes/' dist/index.html
+          echo "OK: base href points to /activite-deputes/"
