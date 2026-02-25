@@ -1,20 +1,29 @@
 <!DOCTYPE html>
 <html lang="fr" data-theme="dark">
-<!-- GitHub Pages SPA : restaure le chemin encodé par 404.html -->
+<!-- GitHub Pages SPA: restore route after 404 redirect -->
 <script>
-  (function(l) {
-    if (l.search[1] === 'p' && l.search.indexOf('?p=/') === 0) {
-      var decoded = l.search.slice(1).split('&').map(function(s) {
-        return s.replace(/~and~/g, '&');
-      });
-      var path = '/' + decoded[0].slice(2); // retire "p=/"
-      var query = decoded[1] ? '?' + decoded[1].slice(2) : '';
-      window.history.replaceState(
-        null, null,
-        l.pathname.replace(/\/$/, '') + path + query + l.hash
-      );
-    }
-  }(window.location));
+(function () {
+  var l = window.location;
+  if (!l.search || l.search.indexOf('?p=') !== 0) return;
+
+  var decoded = l.search.slice(1).split('&').map(function (seg) {
+    return seg.replace(/~and~/g, '&');
+  });
+
+  var pSeg = decoded.find(function (seg) { return seg.indexOf('p=') === 0; }) || 'p=/';
+  var qSeg = decoded.find(function (seg) { return seg.indexOf('q=') === 0; });
+
+  var rawPath = pSeg.slice(2);                  // ex: "/comparer"
+  var query = qSeg ? ('?' + qSeg.slice(2)) : '';
+
+  // "/activite-deputes/" (toujours 1 seul slash final)
+  var basePath = l.pathname.replace(/\/+$/, '/');
+
+  // "comparer" (sans slash de tête)
+  var normalizedPath = (rawPath || '/').replace(/^\/+/, '');
+
+  window.history.replaceState(null, '', basePath + normalizedPath + query + l.hash);
+})();
 </script>
 <head>
   <meta charset="UTF-8" />
