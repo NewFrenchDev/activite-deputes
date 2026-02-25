@@ -10,8 +10,8 @@ on:
     paths:
       - 'pipeline/**'
       - 'frontend/**'
-      - 'docs/**'
       - '.github/workflows/**'
+      # ← docs/** retiré : évite une boucle infinie si on commitait docs/
 
 concurrency:
   group: deploy
@@ -23,6 +23,10 @@ permissions:
   id-token: write
 
 jobs:
+
+  # ─────────────────────────────────────────────
+  # JOB 1 : Scraping + génération des JSON
+  # ─────────────────────────────────────────────
   pipeline:
     name: Run ETL Pipeline
     runs-on: ubuntu-latest
@@ -60,7 +64,8 @@ jobs:
         env:
           RUST_LOG: pipeline=info
 
-      - name: Upload generated data (artifact for frontend job)
+      # Le pipeline écrit dans docs/data/ et docs/exports/
+      - name: Upload generated data
         uses: actions/upload-artifact@v4
         with:
           name: site-data
@@ -69,6 +74,9 @@ jobs:
             docs/exports/
           retention-days: 1
 
+  # ─────────────────────────────────────────────
+  # JOB 2 : Compilation WASM + assemblage du site
+  # ─────────────────────────────────────────────
   build-frontend:
     name: Build Frontend WASM
     runs-on: ubuntu-latest
@@ -78,12 +86,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Download site data
-        uses: actions/download-artifact@v4
-        with:
-          name: site-data
-          path: docs/
 
       - name: Install Rust + wasm32 target
         uses: dtolnay/rust-toolchain@stable
@@ -108,20 +110,33 @@ jobs:
       - name: Install wasm-bindgen-cli
         run: cargo install wasm-bindgen-cli --locked
 
+      # FIX 1 : on build dans dist/ (pas docs/) pour ne pas écraser les données
+      # FIX 2 : --public-url indispensable pour que les assets se chargent sur GitHub Pages
       - name: Build frontend
         working-directory: frontend
-        run: trunk build --release --dist ../docs
-        
+        run: trunk build --release --dist ../dist --public-url /activite-deputes/
+
+      # Les données arrivent APRÈS le build (trunk aurait écrasé docs/)
+      - name: Download site data
+        uses: actions/download-artifact@v4
+        with:
+          name: site-data
+          path: dist/
+
+      # Nécessaire pour que le refresh / accès direct aux routes SPA ne donne pas 404
       - name: Create 404.html for SPA routing
-        run: cp docs/index.html docs/404.html
+        run: cp dist/index.html dist/404.html
 
       - name: Upload full site
         uses: actions/upload-artifact@v4
         with:
           name: site-full
-          path: docs/
+          path: dist/
           retention-days: 1
 
+  # ─────────────────────────────────────────────
+  # JOB 3 : Déploiement sur GitHub Pages
+  # ─────────────────────────────────────────────
   deploy:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
@@ -135,7 +150,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: site-full
-          path: docs/
+          path: dist/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -143,7 +158,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/
+          path: dist/
 
       - name: Deploy to GitHub Pages
         id: deployment
