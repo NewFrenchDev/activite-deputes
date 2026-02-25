@@ -120,19 +120,7 @@ jobs:
           grep -RIn '<Route path=' frontend/src || true
           echo "=== Internal links (A vs a) ==="
           grep -RIn '<A ' frontend/src || true
-          grep -RIn '<a ' frontend/src || true
-        
-      # CI-only switch: on adapte le Router pour GitHub Pages sans toucher au repo/local.
-      - name: Patch Router base for GitHub Pages (CI only)
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "Before:"
-          grep -n '<Router base=' frontend/src/lib.rs || true
-          sed -i '0,/<Router base="\/">/s//<Router base="\/activite-deputes">/' frontend/src/lib.rs
-          echo "After:"
-          grep -n '<Router base=' frontend/src/lib.rs
-          grep -q '<Router base="/activite-deputes">' frontend/src/lib.rs          
+          grep -RIn '<a ' frontend/src || true     
           
       - name: Debug router source after CI patches
         shell: bash
