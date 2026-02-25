@@ -46,12 +46,12 @@ jobs:
           key: ${{ runner.os }}-pipeline-${{ hashFiles('pipeline/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-pipeline-
 
-      - name: Restore .work cache (ETags)
+      - name: Restore pipeline work dir
         uses: actions/cache@v4
         with:
-          path: pipeline/.work/etag_cache.json
-          key: etag-cache-${{ github.run_id }}
-          restore-keys: etag-cache-
+          path: pipeline/.work/
+          key: pipeline-work-${{ github.run_id }}
+          restore-keys: pipeline-work-
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
