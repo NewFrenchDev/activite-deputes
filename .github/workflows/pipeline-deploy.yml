@@ -112,22 +112,15 @@ jobs:
         
       # CI-only switch: on adapte le Router pour GitHub Pages sans toucher au repo/local.
       - name: Patch Router base for GitHub Pages (CI only)
+        shell: bash
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("frontend/src/lib.rs")
-          s = p.read_text(encoding="utf-8")
-          old = '<Router base="/">'
-          new = '<Router base="/activite-deputes">'
-          if new in s:
-              print("Router base already set for GitHub Pages.")
-          elif old in s:
-              s = s.replace(old, new, 1)
-              p.write_text(s, encoding="utf-8")
-              print("Patched Router base for GitHub Pages.")
-          else:
-              raise SystemExit("ERROR: Router base line not found in frontend/src/lib.rs")
-          PY 
+          set -euo pipefail
+          echo "Before:"
+          grep -n '<Router base=' frontend/src/lib.rs || true
+          sed -i '0,/<Router base="\/">/s//<Router base="\/activite-deputes">/' frontend/src/lib.rs
+          echo "After:"
+          grep -n '<Router base=' frontend/src/lib.rs
+          grep -q '<Router base="/activite-deputes">' frontend/src/lib.rs
 
       # FIX 1 : on build dans dist/ (pas docs/) pour ne pas écraser les données
       # FIX 2 : --public-url indispensable pour que les assets se chargent sur GitHub Pages
