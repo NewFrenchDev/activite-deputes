@@ -1,5 +1,21 @@
 <!DOCTYPE html>
 <html lang="fr" data-theme="dark">
+<!-- GitHub Pages SPA : restaure le chemin encodé par 404.html -->
+<script>
+  (function(l) {
+    if (l.search[1] === 'p' && l.search.indexOf('?p=/') === 0) {
+      var decoded = l.search.slice(1).split('&').map(function(s) {
+        return s.replace(/~and~/g, '&');
+      });
+      var path = '/' + decoded[0].slice(2); // retire "p=/"
+      var query = decoded[1] ? '?' + decoded[1].slice(2) : '';
+      window.history.replaceState(
+        null, null,
+        l.pathname + path + query + l.hash
+      );
+    }
+  }(window.location));
+</script>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
