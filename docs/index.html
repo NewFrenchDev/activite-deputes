@@ -1,5 +1,30 @@
 <!DOCTYPE html>
 <html lang="fr" data-theme="dark">
+<!-- GitHub Pages SPA: restore route after 404 redirect -->
+<script>
+(function () {
+  var l = window.location;
+  if (!l.search || l.search.indexOf('?p=') !== 0) return;
+
+  var decoded = l.search.slice(1).split('&').map(function (seg) {
+    return seg.replace(/~and~/g, '&');
+  });
+
+  var pSeg = decoded.find(function (seg) { return seg.indexOf('p=') === 0; }) || 'p=/';
+  var qSeg = decoded.find(function (seg) { return seg.indexOf('q=') === 0; });
+
+  var rawPath = pSeg.slice(2);                  // ex: "/comparer"
+  var query = qSeg ? ('?' + qSeg.slice(2)) : '';
+
+  // "/activite-deputes/" (toujours 1 seul slash final)
+  var basePath = l.pathname.replace(/\/+$/, '/');
+
+  // "comparer" (sans slash de tête)
+  var normalizedPath = (rawPath || '/').replace(/^\/+/, '');
+
+  window.history.replaceState(null, '', basePath + normalizedPath + query + l.hash);
+})();
+</script>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -266,15 +291,15 @@
     /* Divider */
     .divider { border: none; border-top: 1px solid var(--bg-border); margin: 1.5rem 0; }
   </style>
-<link rel="modulepreload" href="/frontend-e4ff447b29e5e16f.js" crossorigin="anonymous" integrity="sha384-hV0yNuNgyi9snrWk+7OprlW9OddrHPjpXVpmitpmZG7jjsMUkIeVXpfdYSlZopP7"><link rel="preload" href="/frontend-e4ff447b29e5e16f_bg.wasm" crossorigin="anonymous" integrity="sha384-JXnIixDsMC+5jOGXPmJ77YzKlShnP//Vj6k+RmrsqVRgE7s1DLXWCsD9ldD4Vq5f" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="/frontend-e87cd09c5ecbaabb.js" crossorigin="anonymous" integrity="sha384-hV0yNuNgyi9snrWk+7OprlW9OddrHPjpXVpmitpmZG7jjsMUkIeVXpfdYSlZopP7"><link rel="preload" href="/frontend-e87cd09c5ecbaabb_bg.wasm" crossorigin="anonymous" integrity="sha384-oePwUPGz9HGCQ44lOUgqFSwVnFNRUNRhJQxsLVKh2M++Z1LyV5ZQz7s97wMU696N" as="fetch" type="application/wasm"></head>
 <body class="dark">
   <div id="app"></div>
 
   <!-- WASM bundle (généré par trunk) -->
   
 <script type="module">
-import init, * as bindings from '/frontend-e4ff447b29e5e16f.js';
-const wasm = await init({ module_or_path: '/frontend-e4ff447b29e5e16f_bg.wasm' });
+import init, * as bindings from '/frontend-e87cd09c5ecbaabb.js';
+const wasm = await init({ module_or_path: '/frontend-e87cd09c5ecbaabb_bg.wasm' });
 
 
 window.wasmBindings = bindings;
