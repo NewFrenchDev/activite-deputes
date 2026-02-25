@@ -129,20 +129,10 @@ jobs:
           set -euo pipefail
           echo "Before:"
           grep -n '<Router base=' frontend/src/lib.rs || true
-          sed -i '0,/<Router base="\/">/s//<Router base="\/activite-deputes\/">/' frontend/src/lib.rs
+          sed -i '0,/<Router base="\/">/s//<Router base="\/activite-deputes">/' frontend/src/lib.rs
           echo "After:"
           grep -n '<Router base=' frontend/src/lib.rs
-          grep -q '<Router base="/activite-deputes/">' frontend/src/lib.rs
-          
-      - name: Patch top-level routes for GitHub Pages (CI only)
-        shell: bash
-        run: |
-          set -euo pipefail
-          sed -i 's|path="/\*any"|path="*any"|' frontend/src/lib.rs
-          echo "=== After CI route patch ==="
-          grep -n '<Router base=' frontend/src/lib.rs || true
-          grep -n '<Route path=' frontend/src/lib.rs || true
-          
+          grep -q '<Router base="/activite-deputes">' frontend/src/lib.rs          
           
       - name: Debug router source after CI patches
         shell: bash
