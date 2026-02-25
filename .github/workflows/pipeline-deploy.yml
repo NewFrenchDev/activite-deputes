@@ -110,7 +110,7 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
-        run: trunk build --release --dist ../docs --public-url /activite-deputes/
+        run: trunk build --release --dist ../docs
         
       - name: Create 404.html for SPA routing
         run: cp docs/index.html docs/404.html
