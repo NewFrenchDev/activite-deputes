@@ -146,8 +146,12 @@ jobs:
           sed -i 's|path="/reseau"|path="reseau"|' frontend/src/lib.rs
           sed -i 's|path="/positions-groupes"|path="positions-groupes"|' frontend/src/lib.rs
           sed -i 's|path="/methodologie"|path="methodologie"|' frontend/src/lib.rs
+           # Wildcard route
+          sed -i 's|path="/\\*any"|path="*any"|' frontend/src/lib.rs || true
           sed -i 's|path="/*any"|path="*any"|' frontend/src/lib.rs || true
-          sed -i 's|path="/\*any"|path="*any"|' frontend/src/lib.rs || true
+          echo "=== After CI route patch ==="
+          grep -n '<Router base=' frontend/src/lib.rs || true
+          grep -n '<Route path=' frontend/src/lib.rs || true
           
           
       - name: Debug router source after CI patches
