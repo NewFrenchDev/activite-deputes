@@ -29,15 +29,21 @@ pub fn main() {
     leptos::mount_to_body(App);
 }
 
+use std::sync::OnceLock;
+
+static BASE_PATH: OnceLock<&'static str> = OnceLock::new();
+
 #[component]
 fn App() -> impl IntoView {
     // Store global initialisé une seule fois à la racine
     provide_store();
     
-    let base = app_base_path()    
+    let base: &'static str = *BASE_PATH.get_or_init(|| {
+        Box::leak(app_base_path().into_boxed_str())
+    });    
     
     view! {
-        <Router base=&base>
+        <Router base=base>
             <Layout>
                 <Routes>
                     <Route path="/" view=HomePage />
