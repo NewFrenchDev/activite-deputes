@@ -37,7 +37,7 @@ fn App() -> impl IntoView {
     let base = app_base_path()    
     
     view! {
-        <Router base=base>
+        <Router base=&base>
             <Layout>
                 <Routes>
                     <Route path="/" view=HomePage />
