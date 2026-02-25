@@ -181,6 +181,12 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      - name: Download full site
+        uses: actions/download-artifact@v4
+        with:
+          name: site-full
+          path: dist/
+          
       - name: Debug extracted site-full artifact
         shell: bash
         run: |
@@ -196,12 +202,6 @@ jobs:
           ls -ld dist docs site 2>/dev/null || true
           echo "=== Check common expected files ==="
           test -f dist/index.html || test -f docs/index.html || test -f site/index.html
-    
-      - name: Download full site
-        uses: actions/download-artifact@v4
-        with:
-          name: site-full
-          path: dist/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
