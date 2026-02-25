@@ -23,8 +23,8 @@ async fn main() -> Result<()> {
 
     let work_dir = PathBuf::from("pipeline/.work");
     let temp_dir = PathBuf::from("pipeline/.temp_out");
-    let site_data = PathBuf::from("site-dev/data");
-    let site_exports = PathBuf::from("site-dev/exports");
+    let site_data = PathBuf::from("docs/data");
+    let site_exports = PathBuf::from("docs/exports");
 
     std::fs::create_dir_all(&work_dir)?;
     std::fs::create_dir_all(&temp_dir)?;

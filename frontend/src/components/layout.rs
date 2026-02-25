@@ -2,6 +2,7 @@ use leptos::*;
 use leptos_router::*;
 
 use crate::api::{fetch_status, inferred_github_repo_urls};
+use crate::utils::app_href;
 
 #[component]
 pub fn Layout(children: Children) -> impl IntoView {
@@ -32,13 +33,13 @@ pub fn Layout(children: Children) -> impl IntoView {
                             <span style="font-size:0.76rem;color:var(--text-secondary);">"Le site est fonctionnel mais en amélioration continue (UX, liens AN, couverture données)."</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;">
-                            <a href="/methodologie" style="font-size:0.75rem;color:var(--accent);text-decoration:none;">"Méthode & limites"</a>
+                            <A href=app_href("/methodologie") attr:style="font-size:0.75rem;color:var(--accent);text-decoration:none;">"Méthode & limites"</A>
                             {match issue_url.clone() {
                                 Some(url) => view! {
                                     <a href=url target="_blank" rel="noopener noreferrer" style="font-size:0.75rem;color:var(--accent);text-decoration:none;">"Signaler un problème ↗"</a>
                                 }.into_view(),
                                 None => view! {
-                                    <a href="/methodologie#retours" style="font-size:0.75rem;color:var(--accent);text-decoration:none;">"Feedback"</a>
+                                    <A href=app_href("/methodologie#retours") attr:style="font-size:0.75rem;color:var(--accent);text-decoration:none;">"Feedback"</A>
                                 }.into_view(),
                             }}
                         </div>
@@ -46,7 +47,7 @@ pub fn Layout(children: Children) -> impl IntoView {
                 </div>
                 <div style="max-width:1400px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;">
                     <div style="display:flex;align-items:center;gap:2rem;">
-                        <a href="/" style="display:flex;align-items:center;gap:0.6rem;text-decoration:none;">
+                        <A href=app_href("/") attr:style="display:flex;align-items:center;gap:0.6rem;text-decoration:none;">
                             <span style="width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5">
                                     <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -56,15 +57,15 @@ pub fn Layout(children: Children) -> impl IntoView {
                             <span style="font-weight:700;font-size:0.95rem;color:var(--text-primary)">Activité Députés</span>
                             <span style="font-size:0.62rem;padding:0.12rem 0.35rem;border-radius:999px;border:1px solid rgba(245,158,11,.35);color:var(--warning);background:rgba(245,158,11,.08);font-weight:600;">"BETA"</span>
                             <span style="font-size:0.65rem;color:var(--text-muted);font-weight:400;margin-top:2px;">"17e législature"</span>
-                        </a>
+                        </A>
                         <nav style="display:flex;gap:0;padding-left:1rem;border-left:1px solid var(--bg-border);" aria-label="Navigation principale">
-                            <NavLink href="/" label="Accueil" />
-                            <NavLink href="/comparer" label="Comparer" />
-                            <NavLink href="/exporter" label="Exporter" />
-                            <NavLink href="/stats-globales" label="Stats globales" />
-                            <NavLink href="/reseau" label="Réseau" />
-                            <NavLink href="/positions-groupes" label="Positions groupes" />
-                            <NavLink href="/methodologie" label="Méthode & Sources" />
+                            <NavLink path="/" label="Accueil" />
+                            <NavLink path="/comparer" label="Comparer" />
+                            <NavLink path="/exporter" label="Exporter" />
+                            <NavLink path="/stats-globales" label="Stats globales" />
+                            <NavLink path="/reseau" label="Réseau" />
+                            <NavLink path="/positions-groupes" label="Positions groupes" />
+                            <NavLink path="/methodologie" label="Méthode & Sources" />
                         </nav>
                     </div>
                     <div style="display:flex;align-items:center;gap:0.75rem;">
@@ -92,7 +93,7 @@ pub fn Layout(children: Children) -> impl IntoView {
                         </a>
                         " — Open data Assemblée nationale — Licence Ouverte v2.0"
                         " · Ce site ne contient pas d'opinion ni de commentaire éditorial. "
-                        <a href="/methodologie" style="color:var(--accent);">"Méthode & Sources"</a>
+                        <A href=app_href("/methodologie") attr:style="color:var(--accent);">"Méthode & Sources"</A>
                     </p>
                     <div style="font-size:0.74rem;color:var(--text-muted);display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;justify-content:center;">
                         {match repo_url.clone() {
@@ -102,7 +103,7 @@ pub fn Layout(children: Children) -> impl IntoView {
                         <span style="opacity:.55;">"·"</span>
                         {match issue_url.clone() {
                             Some(url) => view! { <a href=url target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none;">"Feedback / Issues ↗"</a> }.into_view(),
-                            None => view! { <a href="/methodologie#retours" style="color:var(--accent);text-decoration:none;">"Comment signaler un problème"</a> }.into_view(),
+                            None => view! { <A href=app_href("/methodologie#retours") attr:style="color:var(--accent);text-decoration:none;">"Comment signaler un problème"</A> }.into_view(),
                         }}
                     </div>
                     <div style="font-size:0.74rem;color:var(--text-muted);">
@@ -124,7 +125,8 @@ pub fn Layout(children: Children) -> impl IntoView {
 }
 
 #[component]
-fn NavLink(href: &'static str, label: &'static str) -> impl IntoView {
+fn NavLink(path: &'static str, label: &'static str) -> impl IntoView {
+    let href = app_href(path);
     view! {
         <A
             href=href

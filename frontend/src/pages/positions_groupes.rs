@@ -3,7 +3,7 @@ use leptos_router::{A, use_query_map};
 
 use crate::api::{fetch_group_ppl_group_shard, fetch_group_ppl_index, inferred_github_repo_urls};
 use crate::models::{GroupPplGroupIndexEntry, GroupPplGroupShard, GroupPplItemSummary, SignerPreviewEntry};
-use crate::utils::{matches_search, normalize_search};
+use crate::utils::{matches_search, normalize_search, app_href};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum RelationFilter {
@@ -260,13 +260,13 @@ pub fn PositionsGroupesPage() -> impl IntoView {
                         }}
                     </div>
                     <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
-                        <a href="/methodologie" class="btn" style="text-decoration:none;">"Méthode"</a>
+                        <A href=app_href("/methodologie") class="btn" attr:style="text-decoration:none;">"Méthode"</A>
                         {match issue_url.clone() {
                             Some(url) => view! {
                                 <a href=url target="_blank" rel="noopener noreferrer" class="btn" style="text-decoration:none;">"Feedback ↗"</a>
                             }.into_view(),
                             None => view! {
-                                <a href="/methodologie#retours" class="btn" style="text-decoration:none;">"Feedback"</a>
+                                <A href=app_href("/methodologie#retours") class="btn" attr:style="text-decoration:none;">"Feedback"</A>
                             }.into_view(),
                         }}
                     </div>
@@ -657,7 +657,7 @@ fn render_signers_preview_cell(signers: Vec<SignerPreviewEntry>, fallback_names:
                     let label = s.deputy_name.trim().to_string();
                     let dep_id = s.deputy_id.as_deref().map(str::trim).filter(|id| !id.is_empty()).map(|id| id.to_string());
                     if let Some(dep_id) = dep_id {
-                        let href = format!("/depute/{dep_id}");
+                        let href = app_href(&format!("/depute/{dep_id}"));
                         view! {
                             <A href=href attr:style="color:var(--accent);text-decoration:none;">{label}</A>
                         }.into_view()

@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use chrono::{Datelike, NaiveDate};
 use leptos::*;
+use leptos_router::A;
 
+use crate::utils::app_href;
 use crate::api::fetch_deputes;
 use crate::models::{DeputeInfo, DeputeStats, Period};
 use crate::store::use_store;
@@ -107,8 +109,8 @@ pub fn StatsGlobalesPage() -> impl IntoView {
                         }}
                     </div>
                     <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
-                        <a href="/" class="btn">"← Retour accueil"</a>
-                        <a href="/methodologie" class="btn" style="text-decoration:none;">"Méthode & sources"</a>
+                        <A href=app_href("/") class="btn">"← Retour accueil"</A>
+                        <A href=app_href("/methodologie") class="btn" attr:style="text-decoration:none;">"Méthode & sources"</A>
                     </div>
                 </div>
 

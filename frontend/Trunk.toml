@@ -2,11 +2,11 @@ trunk-version = "*"
 
 [build]
 target = "index.html"
-dist = "../site-dev"
-public_url = "/"
+dist = "../docs"
+#public_url = "/activite-deputes"
 
 [watch]
-watch = ["../site/data", "../site/exports"]
+watch = ["../docs/data", "../docs/exports"]
 
 [serve]
 port = 8080
@@ -21,5 +21,5 @@ stage = "post_build"
 command = "sh"
 command_arguments = [
   "-c",
-  'rm -rf "$TRUNK_STAGING_DIR/data" "$TRUNK_STAGING_DIR/exports"; if [ -d ../site-dev/data ]; then cp -a ../site-dev/data "$TRUNK_STAGING_DIR/data"; fi; if [ -d ../site-dev/exports ]; then cp -a ../site-dev/exports "$TRUNK_STAGING_DIR/exports"; fi; echo "Copied pipeline assets into $TRUNK_STAGING_DIR"'
+  'rm -rf "$TRUNK_STAGING_DIR/data" "$TRUNK_STAGING_DIR/exports"; if [ -d ../docs/data ]; then cp -a ../docs/data "$TRUNK_STAGING_DIR/data"; fi; if [ -d ../docs/exports ]; then cp -a ../docs/exports "$TRUNK_STAGING_DIR/exports"; fi; echo "Copied pipeline assets into $TRUNK_STAGING_DIR"'
 ]

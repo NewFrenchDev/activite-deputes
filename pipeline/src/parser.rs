@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use chrono::NaiveDate;
 use std::collections::HashMap;
 use std::path::Path;
+use std::time::Instant;
 use tracing::{info, warn};
 
 use crate::models::*;
@@ -119,14 +120,44 @@ pub fn parse_all(work_dir: &Path) -> Result<RawDataset> {
     let amendements_dir = work_dir.join("amendements");
     let dossiers_dir = work_dir.join("dossiers");
 
+    let t_all = Instant::now();
+    info!("Parsing détaillé: début");
+
+    let t = Instant::now();
     let (deputes, organes) = parse_deputes(&deputes_dir)
         .context("Parsing députés")?;
+    info!(
+        "Parsing députés OK en {:?} (deputes={}, organes={})",
+        t.elapsed(),
+        deputes.len(),
+        organes.len()
+    );
+
+    let t = Instant::now();
     let scrutins = parse_scrutins(&scrutins_dir)
         .context("Parsing scrutins")?;
+    info!("Parsing scrutins OK en {:?} (scrutins={})", t.elapsed(), scrutins.len());
+
+    let t = Instant::now();
     let amendements = parse_amendements(&amendements_dir)
         .context("Parsing amendements")?;
-    let dossiers = parse_dossiers(&dossiers_dir)
-        .unwrap_or_default();
+    info!(
+        "Parsing amendements OK en {:?} (amendements={})",
+        t.elapsed(),
+        amendements.len()
+    );
+
+    let t = Instant::now();
+    let dossiers = match parse_dossiers(&dossiers_dir) {
+        Ok(d) => d,
+        Err(e) => {
+            warn!("Parsing dossiers échoué ({e}) — fallback dossiers vides");
+            HashMap::new()
+        }
+    };
+    info!("Parsing dossiers OK en {:?} (dossiers={})", t.elapsed(), dossiers.len());
+
+    info!("Parsing détaillé: terminé en {:?}", t_all.elapsed());
 
     Ok(RawDataset { deputes, organes, scrutins, amendements, dossiers })
 }

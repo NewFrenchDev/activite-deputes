@@ -9,9 +9,6 @@ pkg/
 
 # Sites générés
 site/
-site-dev/*.js
-site-dev/*.html
-site-dev/*.wasm
 
 # Data/caches/téléchargements
 work/

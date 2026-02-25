@@ -1,6 +1,8 @@
 use anyhow::Result;
 use chrono::{DateTime, Duration, NaiveDate, Utc};
 use std::collections::HashMap;
+use std::time::Instant;
+use tracing::info;
 
 use crate::models::*;
 
@@ -86,10 +88,28 @@ pub fn compute_all(raw: &RawDataset, now: DateTime<Utc>) -> Result<AllAggregates
     let p180_start = today - Duration::days(180);
     let leg_start  = NaiveDate::parse_from_str(LEG17_START, "%Y-%m-%d").unwrap();
 
+    let t_all = Instant::now();
+    info!(
+        "Agrégation détaillée: début (deputes={}, scrutins={}, amendements={})",
+        raw.deputes.len(),
+        raw.scrutins.len(),
+        raw.amendements.len()
+    );
+
+    let t = Instant::now();
     let p30  = compute_period(raw, p30_start,  today, false);
+    info!("Agrégation P30 OK en {:?} (lignes={})", t.elapsed(), p30.len());
+
+    let t = Instant::now();
     let p180 = compute_period(raw, p180_start, today, false);
+    info!("Agrégation P180 OK en {:?} (lignes={})", t.elapsed(), p180.len());
+
     // Pour la période LEG, on accepte les amendements sans date (déposés sur toute la législature)
+    let t = Instant::now();
     let leg  = compute_period(raw, leg_start,  today, true);
+    info!("Agrégation LEG OK en {:?} (lignes={})", t.elapsed(), leg.len());
+
+    info!("Agrégation détaillée: terminée en {:?}", t_all.elapsed());
 
     Ok(AllAggregates {
         p30,
@@ -106,14 +126,36 @@ fn compute_period(
     period_end: NaiveDate,
     include_undated_amd: bool,
 ) -> Vec<DeputeStats> {
+    let t_period = Instant::now();
+    info!(
+        "compute_period: début [{} -> {}] (deputes={}, scrutins={}, amendements={}, include_undated_amd={})",
+        period_start,
+        period_end,
+        raw.deputes.len(),
+        raw.scrutins.len(),
+        raw.amendements.len(),
+        include_undated_amd
+    );
+
     // PERF: calcule le réseau de co-signatures une seule fois par période
     // (au lieu de rescanner tous les amendements pour chaque député).
+    let t_cosign = Instant::now();
     let cosign_analytics =
         compute_cosign_analytics_for_period(raw, period_start, period_end, include_undated_amd);
+    info!("compute_period: co-signatures prêtes en {:?}", t_cosign.elapsed());
 
-    raw.deputes
+    let total = raw.deputes.len();
+    let out: Vec<DeputeStats> = raw.deputes
         .iter()
-        .map(|dep| {
+        .enumerate()
+        .map(|(idx, dep)| {
+            let done = idx + 1;
+            if done == 1 || done % 100 == 0 || done == total {
+                info!(
+                    "compute_period: députés {}/{} [{} -> {}]",
+                    done, total, period_start, period_end
+                );
+            }
             compute_depute_stats(
                 dep,
                 raw,
@@ -123,7 +165,16 @@ fn compute_period(
                 &cosign_analytics,
             )
         })
-        .collect()
+        .collect();
+
+    info!(
+        "compute_period: terminé [{} -> {}] en {:?}",
+        period_start,
+        period_end,
+        t_period.elapsed()
+    );
+
+    out
 }
 
 fn compute_depute_stats(

@@ -4,6 +4,7 @@ use chrono::NaiveDate;
 use leptos::*;
 use leptos_router::A;
 
+use crate::utils::app_href;
 use crate::components::period_selector::PeriodSelector;
 use crate::models::{CosignNetworkStats, DeputeStats, Period};
 use crate::store::use_store;
@@ -173,7 +174,7 @@ pub fn ReseauPage() -> impl IntoView {
                         </div>
                         <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
                             <PeriodSelector period=period set_period=set_period />
-                            <a href="/methodologie" class="btn" style="text-decoration:none;">"Méthode"</a>
+                            <A href=app_href("/methodologie") class="btn" attr:style="text-decoration:none;">"Méthode"</A>
                         </div>
                     </div>
                 </section>
@@ -620,7 +621,7 @@ fn FocusGroupPanel(focus: Option<FocusGroupData>, selected_key: Option<String>) 
                                                 <div style="padding:.65rem .9rem;border-top:1px solid rgba(255,255,255,.03);display:grid;grid-template-columns:auto minmax(190px,1.5fr) minmax(120px,1fr) auto;gap:.7rem;align-items:center;">
                                                     <div style="font-size:.72rem;color:var(--text-muted);font-variant-numeric:tabular-nums;width:1.6rem;">{format!("#{:02}", idx + 1)}</div>
                                                     <div style="min-width:0;display:flex;flex-direction:column;gap:.16rem;">
-                                                        <A href=format!("/depute/{}", d.deputy_id) attr:style="color:var(--text-secondary);text-decoration:none;font-weight:600;font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                        <A href=app_href(&format!("/depute/{}", d.deputy_id)) attr:style="color:var(--text-secondary);text-decoration:none;font-weight:600;font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                                             {d.nom_complet.clone()}
                                                         </A>
                                                         <div style="font-size:.68rem;color:var(--text-muted);font-variant-numeric:tabular-nums;display:flex;gap:.65rem;flex-wrap:wrap;">

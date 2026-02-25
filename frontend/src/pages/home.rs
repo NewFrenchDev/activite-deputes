@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use crate::store::use_store;
 use crate::models::*;
-use crate::utils::{fmt_pct, matches_search, groupe_color};
+use crate::utils::{fmt_pct, matches_search, groupe_color, app_href};
 use crate::components::{
     skeleton::SkeletonTable,
     period_selector::PeriodSelector,
@@ -298,7 +298,7 @@ pub fn HomePage() -> impl IntoView {
                 <span>
                     <strong style="color:var(--accent);">"ℹ Participation"</strong>
                     " : taux de positions enregistrées (Pour/Contre/Abstention) sur scrutins publics — pas une mesure de présence physique."
-                    <a href="/methodologie" style="color:var(--accent);margin-left:0.5rem;">"→ Méthode"</a>
+                    <A href=app_href("/methodologie") attr:style="color:var(--accent);margin-left:0.5rem;">"→ Méthode"</A>
                 </span>
                 // Toggle colonnes secondaires
                 <button
@@ -334,7 +334,7 @@ pub fn HomePage() -> impl IntoView {
                                     view! {
                                         <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px auto;gap:0.5rem;align-items:center;">
                                             <div style="min-width:0;">
-                                                <A href=format!("/depute/{id}") attr:style="color:var(--text-primary);text-decoration:none;font-size:0.8rem;font-weight:500;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                                <A href=app_href(&format!("/depute/{id}")) attr:style="color:var(--text-primary);text-decoration:none;font-size:0.8rem;font-weight:500;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                                                     {nom}
                                                 </A>
                                                 <span style="font-size:0.68rem;color:var(--text-muted);">{grp}</span>
@@ -362,7 +362,7 @@ pub fn HomePage() -> impl IntoView {
                                     view! {
                                         <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px auto;gap:0.5rem;align-items:center;">
                                             <div style="min-width:0;">
-                                                <A href=format!("/depute/{id}") attr:style="color:var(--text-primary);text-decoration:none;font-size:0.8rem;font-weight:500;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                                <A href=app_href(&format!("/depute/{id}")) attr:style="color:var(--text-primary);text-decoration:none;font-size:0.8rem;font-weight:500;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                                                     {nom}
                                                 </A>
                                                 <span style="font-size:0.68rem;color:var(--text-muted);">{grp}</span>
@@ -492,7 +492,7 @@ pub fn HomePage() -> impl IntoView {
                                                 </td>
                                             }.into_view() } else { view! { <></> }.into_view() }}
                                             <td>
-                                                <A href=format!("/depute/{id}") class="btn"
+                                                <A href=app_href(&format!("/depute/{id}")) class="btn"
                                                     attr:style="padding:0.25rem 0.6rem;font-size:0.75rem;"
                                                     attr:aria-label=format!("Voir la fiche de {} {}", d.prenom, d.nom)>
                                                     "→"
@@ -540,7 +540,7 @@ pub fn HomePage() -> impl IntoView {
 
             <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.75rem;text-align:right;">
                 "Cliquez sur les en-têtes pour trier · "
-                <a href="/exporter" style="color:var(--accent);">"↓ Télécharger CSV"</a>
+                <A href=app_href("/exporter") attr:style="color:var(--accent);">"↓ Télécharger CSV"</A>
             </p>
         </div>
     }

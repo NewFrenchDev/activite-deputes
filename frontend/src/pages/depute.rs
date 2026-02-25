@@ -4,7 +4,7 @@ use leptos_router::*;
 use crate::api::{base_url, fetch_deputy_ppl_shard};
 use crate::store::use_store;
 use crate::models::*;
-use crate::utils::{fmt_pct, groupe_color, participation_class};
+use crate::utils::{fmt_pct, groupe_color, participation_class, app_href};
 use crate::components::{
     kpi_card::KpiCard,
     period_selector::PeriodSelector,
@@ -57,9 +57,9 @@ pub fn DeputePage() -> impl IntoView {
     view! {
         <div>
             <div style="margin-bottom:1rem;">
-                <a href="/" style="color:var(--accent);font-size:0.82rem;text-decoration:none;">
+                <A href=app_href("/") attr:style="color:var(--accent);font-size:0.82rem;text-decoration:none;">
                     "← Retour au tableau"
-                </a>
+                </A>
             </div>
 
             {move || {
@@ -78,7 +78,7 @@ pub fn DeputePage() -> impl IntoView {
                             <div style="text-align:center;padding:3rem;color:var(--text-muted);">
                                 <p style="font-size:1.2rem;margin-bottom:0.5rem;">"Député non trouvé"</p>
                                 <p style="font-size:0.82rem;">"L'identifiant "{dep_id()}" est introuvable dans les données de la période sélectionnée."</p>
-                                <a href="/" class="btn" style="margin-top:1rem;">"Retour à l'accueil"</a>
+                                <A href=app_href("/") class="btn" attr:style="margin-top:1rem;">"Retour à l'accueil"</A>
                             </div>
                         }.into_view(),
                         Some(d) => {
@@ -656,7 +656,7 @@ pub fn DeputePage() -> impl IntoView {
                                     <div style=format!("padding:0.75rem 1rem;background:var(--bg-secondary);border:1px solid var(--bg-border);border-left:3px solid {};border-radius:6px;font-size:0.75rem;color:var(--text-muted);line-height:1.6;", grp_color)>
                                         "Ces indicateurs mesurent uniquement l'activité observable dans les données open data officielles. "
                                         "Ils ne reflètent pas le travail local, les réunions non publiques, les négociations informelles ni l'implication hors hémicycle. "
-                                        <a href="/methodologie" style="color:var(--accent);">"→ Lire la méthodologie complète"</a>
+                                        <A href=app_href("/methodologie") attr:style="color:var(--accent);">"→ Lire la méthodologie complète"</A>
                                     </div>
                                 </div>
                             }.into_view()
@@ -795,17 +795,24 @@ fn CosignNetworkSection(d: DeputeStats) -> impl IntoView {
                             </tr>
                         </thead>
                         <tbody>
-                            {fallback_top.iter().map(|c| view! {
-                                <tr>
-                                    <td>
-                                        <a href=format!("/depute/{}", c.deputy_id) style="color:var(--text-primary);text-decoration:none;">
-                                            {format!("{} {}", c.prenom, c.nom)}
-                                        </a>
-                                        <div style="font-size:.7rem;color:var(--text-muted);font-family:monospace;">{c.deputy_id.clone()}</div>
-                                    </td>
-                                    <td>{c.groupe_abrev.clone().unwrap_or_else(|| "—".to_string())}</td>
-                                    <td style="font-weight:600;color:var(--accent);">{c.co_signed_count}</td>
-                                </tr>
+                            {fallback_top.iter().cloned().map(|c| {
+                                let deputy_id = c.deputy_id.clone();
+                                let deputy_href = app_href(&format!("/depute/{}", deputy_id));
+                                let full_name = format!("{} {}", c.prenom, c.nom);
+                                let groupe = c.groupe_abrev.unwrap_or_else(|| "—".to_string());
+                                let co_signed_count = c.co_signed_count;
+                                view! {
+                                    <tr>
+                                        <td>
+                                            <A href=deputy_href attr:style="color:var(--text-primary);text-decoration:none;">
+                                                {full_name}
+                                            </A>
+                                            <div style="font-size:.7rem;color:var(--text-muted);font-family:monospace;">{deputy_id}</div>
+                                        </td>
+                                        <td>{groupe}</td>
+                                        <td style="font-weight:600;color:var(--accent);">{co_signed_count}</td>
+                                    </tr>
+                                }
                             }).collect_view()}
                         </tbody>
                     </table>
@@ -847,9 +854,9 @@ fn PeerRow(peer: CosignPeer) -> impl IntoView {
     view! {
         <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.35rem .45rem;border:1px solid rgba(255,255,255,.03);border-radius:6px;background:rgba(255,255,255,.01);">
             <div style="min-width:0;">
-                <a href=format!("/depute/{}", peer.deputy_id) style="color:var(--text-primary);text-decoration:none;font-size:.78rem;">
+                <A href=app_href(&format!("/depute/{}", peer.deputy_id)) attr:style="color:var(--text-primary);text-decoration:none;font-size:.78rem;">
                     {format!("{} {}", peer.prenom, peer.nom)}
-                </a>
+                </A>
                 <div style="font-size:.68rem;color:var(--text-muted);font-family:monospace;">{peer.deputy_id.clone()}</div>
             </div>
             <div style="display:flex;align-items:center;gap:.45rem;flex-shrink:0;">

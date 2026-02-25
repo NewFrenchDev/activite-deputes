@@ -1,5 +1,6 @@
 use gloo_net::http::Request;
 use crate::models::*;
+use crate::utils::app_base_path;
 
 /// Retourne le chemin de base du site, en gérant correctement GitHub Pages
 /// où le site peut être servi depuis /activite-deputes/ et non depuis /.
@@ -9,30 +10,15 @@ pub fn base_url() -> String {
         Some(w) => w,
         None => return String::new(),
     };
-    let location = window.location();
-    let origin = location.origin().unwrap_or_default();
-    let pathname = location.pathname().unwrap_or_default();
 
-    // En local (trunk serve), les routes SPA sont du type /depute/... ou /comparer.
-    // Sur GitHub Pages (repo pages), on a /<repo>/... ; on veut alors conserver ce préfixe.
-    let first_segment = pathname
-        .trim_start_matches('/')
-        .split('/')
-        .next()
-        .unwrap_or("");
+    let origin = window.location().origin().unwrap_or_default();
+    let base_path = app_base_path();
 
-    let is_app_route = matches!(
-        first_segment,
-        "" | "depute" | "comparer" | "exporter" | "methodologie" | "stats-globales" | "reseau" | "positions-groupes" | "index.html"
-    );
-
-    let base_path = if is_app_route {
-        String::new()
+    if base_path == "/" {
+        origin
     } else {
-        format!("/{first_segment}")
-    };
-
-    format!("{origin}{base_path}")
+        format!("{origin}{base_path}")
+    }
 }
 
 pub fn inferred_github_repo_urls() -> Option<(String, String)> {

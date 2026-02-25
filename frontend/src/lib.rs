@@ -21,6 +21,7 @@ use pages::{
     positions_groupes::PositionsGroupesPage,
 };
 use components::layout::Layout;
+use crate::utils::{app_base_path, app_href};
 
 #[wasm_bindgen(start)]
 pub fn main() {
@@ -34,7 +35,7 @@ fn App() -> impl IntoView {
     provide_store();
 
     view! {
-        <Router base="/activite-deputes">
+        <Router base="/">
             <Layout>
                 <Routes>
                     <Route path="/" view=HomePage />
@@ -58,7 +59,7 @@ fn NotFound() -> impl IntoView {
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem;">
             <p style="font-size:3rem;color:var(--text-muted)">404</p>
             <p style="color:var(--text-secondary)">"Page non trouvée"</p>
-            <a href="/activite-deputes/" class="btn">"Retour à l'accueil"</a>
+            <A href=app_href("/") class="btn">"Retour à l'accueil"</A>
         </div>
     }
 }
