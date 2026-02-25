@@ -11,7 +11,7 @@
       var query = decoded[1] ? '?' + decoded[1].slice(2) : '';
       window.history.replaceState(
         null, null,
-        l.pathname + path + query + l.hash
+        l.pathname.replace(/\/$/, '') + path + query + l.hash
       );
     }
   }(window.location));
