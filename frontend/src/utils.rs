@@ -132,15 +132,6 @@ pub fn app_href(path: &str) -> String {
     }
 }
 
-pub fn is_local_dev_host() -> bool {
-    let host = web_sys::window()
-        .and_then(|w| w.location().hostname().ok())
-        .unwrap_or_default()
-        .to_ascii_lowercase();
-
-    matches!(host.as_str(), "localhost" | "127.0.0.1" | "0.0.0.0" | "[::1]")
-}
-
 #[macro_export]
 macro_rules! app_path {
     ($suffix:literal) => {

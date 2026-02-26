@@ -55,7 +55,11 @@ pub fn HomePage() -> impl IntoView {
     let store_for_stats  = store.clone();
     let store_for_status = store.clone();
     let store_for_hero   = store.clone();
-    let raw_stats = create_memo(move |_| store_for_stats.stats_for(period.get()).get());
+    let raw_stats = create_memo(move |_| {
+        store_for_stats
+            .stats_for(period.get())  // Retourne Resource
+            .get()  //  Resource.get() → Option<Result<Vec>>
+    });
 
     // Chiffres clés calculés depuis le dataset chargé (période sélectionnée)
     let hero_stats = create_memo(move |_| {
