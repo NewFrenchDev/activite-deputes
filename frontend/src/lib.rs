@@ -1,27 +1,26 @@
-mod models;
 mod api;
-mod store;
-mod pages;
 mod components;
+mod models;
+mod pages;
+mod store;
 mod utils;
 
 use leptos::*;
 use leptos_router::*;
 use wasm_bindgen::prelude::*;
 
-use store::provide_store;
-use pages::{
-    home::HomePage,
-    depute::DeputePage,
-    comparer::ComparerPage,
-    exporter::ExportPage,
-    methodologie::MethodePage,
-    stats_globales::StatsGlobalesPage,
-    reseau::ReseauPage,
-    positions_groupes::PositionsGroupesPage,
-};
-use components::layout::Layout;
 use crate::utils::{app_base_path, app_href};
+use components::layout::Layout;
+use pages::{
+    comparer::ComparerPage, depute::DeputePage, exporter::ExportPage, home::HomePage,
+    methodologie::MethodePage, positions_groupes::PositionsGroupesPage, reseau::ReseauPage,
+    stats_globales::StatsGlobalesPage,
+};
+use store::provide_store;
+
+use std::sync::OnceLock;
+
+static BASE_PATH: OnceLock<&'static str> = OnceLock::new();
 
 #[wasm_bindgen(start)]
 pub fn main() {
@@ -29,19 +28,15 @@ pub fn main() {
     leptos::mount_to_body(App);
 }
 
-use std::sync::OnceLock;
-
-static BASE_PATH: OnceLock<&'static str> = OnceLock::new();
-
 #[component]
 fn App() -> impl IntoView {
     // Store global initialisé une seule fois à la racine
     provide_store();
-    
-    let base: &'static str = *BASE_PATH.get_or_init(|| {
-        Box::leak(app_base_path().into_boxed_str())
-    });    
-    
+
+    // Le router Leptos attend un base sans slash final (sauf "/").
+    // On garde une valeur stable pour éviter toute divergence au runtime.
+    let base: &'static str = *BASE_PATH.get_or_init(|| Box::leak(app_base_path().into_boxed_str()));
+
     view! {
         <Router base=base>
             <Layout>
