@@ -38,17 +38,17 @@ fn App() -> impl IntoView {
     let base: &'static str = *BASE_PATH.get_or_init(|| Box::leak(app_base_path().into_boxed_str()));
 
     view! {
-        <Router base=base>
+        <Router base="/activite-deputes">
             <Layout>
                 <Routes>
-                    <Route path="" view=HomePage />
-                    <Route path="depute/:id" view=DeputePage />
-                    <Route path="comparer" view=ComparerPage />
-                    <Route path="exporter" view=ExportPage />
-                    <Route path="stats-globales" view=StatsGlobalesPage />
-                    <Route path="reseau" view=ReseauPage />
-                    <Route path="positions-groupes" view=PositionsGroupesPage />
-                    <Route path="methodologie" view=MethodePage />
+                    <Route path="/activite-deputes/home" view=HomePage />
+                    <Route path="/activite-deputes/depute/:id" view=DeputePage />
+                    <Route path="/activite-deputes/comparer" view=ComparerPage />
+                    <Route path="/activite-deputes/exporter" view=ExportPage />
+                    <Route path="/activite-deputes/stats-globales" view=StatsGlobalesPage />
+                    <Route path="/activite-deputes/reseau" view=ReseauPage />
+                    <Route path="/activite-deputes/positions-groupes" view=PositionsGroupesPage />
+                    <Route path="/activite-deputes/methodologie" view=MethodePage />
                     <Route path="/*any" view=|| view! { <NotFound /> } />
                 </Routes>
             </Layout>
@@ -56,13 +56,21 @@ fn App() -> impl IntoView {
     }
 }
 
+use leptos_router::use_location;
+
 #[component]
 fn NotFound() -> impl IntoView {
+    let loc = use_location();
     view! {
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem;">
             <p style="font-size:3rem;color:var(--text-muted)">404</p>
             <p style="color:var(--text-secondary)">"Page non trouvée"</p>
-            <A href=app_href("/") class="btn">"Retour à l'accueil"</A>
+            <A href="/activite-deputes/home" class="btn">"Retour à l'accueil"</A>
         </div>
+       // <div style="padding: 1rem;">
+         //   <h1>"404"</h1>
+           // <p>"pathname = " {move || loc.pathname.get()}</p>
+            //<p>"search = " {move || loc.search.get()}</p>
+        //</div>
     }
 }

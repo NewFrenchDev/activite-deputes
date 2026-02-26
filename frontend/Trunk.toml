@@ -3,7 +3,7 @@ trunk-version = "*"
 [build]
 target = "index.html"
 dist = "../docs"
-#public_url = "/activite-deputes"
+public_url = "/activite-deputes/"
 
 [watch]
 watch = ["../docs/data", "../docs/exports"]

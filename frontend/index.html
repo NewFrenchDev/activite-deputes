@@ -21,7 +21,7 @@
   // Normalise les URLs avec slash final: /foo/ -> /foo (sauf racine / ou /repo/)
   if (!l.search && l.pathname.length > 1 && /\/$/.test(l.pathname)) {
     var parts = l.pathname.split('/').filter(Boolean);
-    var irRepoRoot = isGithubPagesHost && parts.length === 1
+    var isRepoRoot = isGithubPagesHost && parts.length === 1
     if (!isRepoRoot) {
       var noTrailing = l.pathname.replace(/\/+$/, '');
       window.history.replaceState(null, '', noTrailing + l.hash);

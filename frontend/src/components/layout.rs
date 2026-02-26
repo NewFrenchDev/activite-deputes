@@ -37,13 +37,13 @@ pub fn Layout(children: Children) -> impl IntoView {
                             <span style="font-size:0.76rem;color:var(--text-secondary);">"Le site est fonctionnel mais en amélioration continue (UX, liens AN, couverture données)."</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;">
-                            <A href=app_href("/methodologie") attr:style="font-size:0.75rem;color:var(--accent);text-decoration:none;">"Méthode & limites"</A>
+                            <A href="/activite-deputes/methodologie" attr:style="font-size:0.75rem;color:var(--accent);text-decoration:none;">"Méthode & limites"</A>
                             {match issue_url.clone() {
                                 Some(url) => view! {
                                     <a href=url target="_blank" rel="noopener noreferrer" style="font-size:0.75rem;color:var(--accent);text-decoration:none;">"Signaler un problème ↗"</a>
                                 }.into_view(),
                                 None => view! {
-                                    <A href=app_href("/methodologie#retours") attr:style="font-size:0.75rem;color:var(--accent);text-decoration:none;">"Feedback"</A>
+                                    <A href="/activite-deputes/methodologie#retours" attr:style="font-size:0.75rem;color:var(--accent);text-decoration:none;">"Feedback"</A>
                                 }.into_view(),
                             }}
                         </div>
@@ -51,7 +51,7 @@ pub fn Layout(children: Children) -> impl IntoView {
                 </div>
                 <div style="max-width:1400px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;">
                     <div style="display:flex;align-items:center;gap:2rem;">
-                        <A href=app_href("/") attr:style="display:flex;align-items:center;gap:0.6rem;text-decoration:none;">
+                        <A href="/activite-deputes/home" attr:style="display:flex;align-items:center;gap:0.6rem;text-decoration:none;">
                             <span style="width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5">
                                     <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -63,13 +63,13 @@ pub fn Layout(children: Children) -> impl IntoView {
                             <span style="font-size:0.65rem;color:var(--text-muted);font-weight:400;margin-top:2px;">"17e législature"</span>
                         </A>
                         <nav style="display:flex;gap:0;padding-left:1rem;border-left:1px solid var(--bg-border);" aria-label="Navigation principale">
-                            <NavLink path="" label="Accueil" />
-                            <NavLink path="comparer" label="Comparer" />
-                            <NavLink path="exporter" label="Exporter" />
-                            <NavLink path="stats-globales" label="Stats globales" />
-                            <NavLink path="reseau" label="Réseau" />
-                            <NavLink path="positions-groupes" label="Positions groupes" />
-                            <NavLink path="methodologie" label="Méthode & Sources" />
+                            <NavLink path="/activite-deputes/home" label="Accueil" />
+                            <NavLink path="/activite-deputes/comparer" label="Comparer" />
+                            <NavLink path="/activite-deputes/exporter" label="Exporter" />
+                            <NavLink path="/activite-deputes/stats-globales" label="Stats globales" />
+                            <NavLink path="/activite-deputes/reseau" label="Réseau" />
+                            <NavLink path="/activite-deputes/positions-groupes" label="Positions groupes" />
+                            <NavLink path="/activite-deputes/methodologie" label="Méthode & Sources" />
                         </nav>
                     </div>
                     <div style="display:flex;align-items:center;gap:0.75rem;">
@@ -97,7 +97,7 @@ pub fn Layout(children: Children) -> impl IntoView {
                         </a>
                         " — Open data Assemblée nationale — Licence Ouverte v2.0"
                         " · Ce site ne contient pas d'opinion ni de commentaire éditorial. "
-                        <A href=app_href("/methodologie") attr:style="color:var(--accent);">"Méthode & Sources"</A>
+                        <A href="/activite-deputes/methodologie" attr:style="color:var(--accent);">"Méthode & Sources"</A>
                     </p>
                     <div style="font-size:0.74rem;color:var(--text-muted);display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;justify-content:center;">
                         {match repo_url.clone() {
@@ -107,7 +107,7 @@ pub fn Layout(children: Children) -> impl IntoView {
                         <span style="opacity:.55;">"·"</span>
                         {match issue_url.clone() {
                             Some(url) => view! { <a href=url target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none;">"Feedback / Issues ↗"</a> }.into_view(),
-                            None => view! { <A href=app_href("/methodologie#retours") attr:style="color:var(--accent);text-decoration:none;">"Comment signaler un problème"</A> }.into_view(),
+                            None => view! { <A href="/activite-deputes/methodologie#retours" attr:style="color:var(--accent);text-decoration:none;">"Comment signaler un problème"</A> }.into_view(),
                         }}
                     </div>
                     <div style="font-size:0.74rem;color:var(--text-muted);">
@@ -130,17 +130,9 @@ pub fn Layout(children: Children) -> impl IntoView {
 
 #[component]
 fn NavLink(path: &'static str, label: &'static str) -> impl IntoView {
-    // Laisser le router résoudre des chemins relatifs à son `base` GH Pages.
-    // `app_href` gère correctement le préfixe /activite-deputes quand nécessaire.
-    let href = if path.is_empty() {
-        app_href("/")
-    } else {
-        app_href(path)
-    };
-
     view! {
         <A
-            href=href
+            href=path
             attr:style="padding:0 0.85rem;height:56px;display:flex;align-items:center;font-size:0.82rem;color:var(--text-secondary);text-decoration:none;border-bottom:2px solid transparent;transition:all 0.15s;"
             active_class="nav-active"
             exact=true

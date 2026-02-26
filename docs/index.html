@@ -21,7 +21,7 @@
   // Normalise les URLs avec slash final: /foo/ -> /foo (sauf racine / ou /repo/)
   if (!l.search && l.pathname.length > 1 && /\/$/.test(l.pathname)) {
     var parts = l.pathname.split('/').filter(Boolean);
-    var irRepoRoot = isGithubPagesHost && parts.length === 1
+    var isRepoRoot = isGithubPagesHost && parts.length === 1
     if (!isRepoRoot) {
       var noTrailing = l.pathname.replace(/\/+$/, '');
       window.history.replaceState(null, '', noTrailing + l.hash);
@@ -58,7 +58,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <base href="/" />
+  <base href="/activite-deputes/" />
   <title>Activité des Députés — Assemblée nationale 17e législature</title>
   <meta name="description" content="Statistiques d'activité parlementaire observable des députés de l'Assemblée nationale française. Données open data officielles." />
   <meta name="robots" content="index, follow" />
@@ -321,15 +321,15 @@
     /* Divider */
     .divider { border: none; border-top: 1px solid var(--bg-border); margin: 1.5rem 0; }
   </style>
-<link rel="modulepreload" href="/frontend-9841631891889f68.js" crossorigin="anonymous" integrity="sha384-oVoyg+zDCCMR8YhQjx/SUuyevOgdyuwB/ChJZE5uwgDZihXdlhZiesKnawcAjP3z"><link rel="preload" href="/frontend-9841631891889f68_bg.wasm" crossorigin="anonymous" integrity="sha384-WBFF4bNI3PDWS9WngL3ZCka9E4VIcVw/vsCAjJECxAlj71ZCJAnLhitJO+pvk+oE" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="/activite-deputes/frontend-25b634df262e8ace.js" crossorigin="anonymous" integrity="sha384-J8yjG5XXGO/tasztVvp0LHAioP8Ceol+rwloGAe5qUbKRttGUMeCdXTzFrAc17NT"><link rel="preload" href="/activite-deputes/frontend-25b634df262e8ace_bg.wasm" crossorigin="anonymous" integrity="sha384-fjMAYsJmwfGEx52McTkX+jKkDAP9m2LvjZQ/+Ua+/jFSVYoU2MS/DRBIurCF4yxX" as="fetch" type="application/wasm"></head>
 <body class="dark">
   <div id="app"></div>
 
   <!-- WASM bundle (généré par trunk) -->
   
 <script type="module">
-import init, * as bindings from '/frontend-9841631891889f68.js';
-const wasm = await init({ module_or_path: '/frontend-9841631891889f68_bg.wasm' });
+import init, * as bindings from '/activite-deputes/frontend-25b634df262e8ace.js';
+const wasm = await init({ module_or_path: '/activite-deputes/frontend-25b634df262e8ace_bg.wasm' });
 
 
 window.wasmBindings = bindings;
