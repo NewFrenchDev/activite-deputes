@@ -13,7 +13,11 @@ pub fn Layout(children: Children) -> impl IntoView {
     let (theme, set_theme) = create_signal(String::from("dark"));
 
     let toggle_theme = move |_| {
-        let next = if theme.get() == "dark" { "light" } else { "dark" };
+        let next = if theme.get() == "dark" {
+            "light"
+        } else {
+            "dark"
+        };
         set_theme.set(next.to_string());
         if let Some(html) = web_sys::window()
             .and_then(|w| w.document())
@@ -126,9 +130,17 @@ pub fn Layout(children: Children) -> impl IntoView {
 
 #[component]
 fn NavLink(path: &'static str, label: &'static str) -> impl IntoView {
+    // Laisser le router résoudre des chemins relatifs à son `base` GH Pages.
+    // `app_href` gère correctement le préfixe /activite-deputes quand nécessaire.
+    let href = if path.is_empty() {
+        app_href("/")
+    } else {
+        app_href(path)
+    };
+
     view! {
         <A
-            href=path
+            href=href
             attr:style="padding:0 0.85rem;height:56px;display:flex;align-items:center;font-size:0.82rem;color:var(--text-secondary);text-decoration:none;border-bottom:2px solid transparent;transition:all 0.15s;"
             active_class="nav-active"
             exact=true

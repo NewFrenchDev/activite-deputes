@@ -5,6 +5,16 @@
 (function () {
   var l = window.location;
 
+  // Canonicalise l'URL racine GitHub Pages: /repo -> /repo/
+  // Sans ce slash final, les liens relatifs cassent (ex: "comparer" -> /comparer).
+  if (!l.search && l.pathname.length > 1 && !/\/$/.test(l.pathname)) {
+    var segs = l.pathname.split('/').filter(Boolean);
+    if (segs.length === 1) {
+      window.history.replaceState(null, '', l.pathname + '/' + l.hash);
+      l = window.location;
+    }
+  }
+
   // Normalise les URLs avec slash final: /foo/ -> /foo (sauf racine / ou /repo/)
   if (!l.search && l.pathname.length > 1 && /\/$/.test(l.pathname)) {
     var parts = l.pathname.split('/').filter(Boolean);
@@ -24,15 +34,12 @@
   var qSeg = decoded.find(function (seg) { return seg.indexOf('q=') === 0; });
 
   var rawPath = pSeg.slice(2);                  // ex: "/comparer"
-  var rawPath = pSeg.slice(2);
   var query = qSeg ? ('?' + qSeg.slice(2)) : '';
 
   // "/activite-deputes/" (toujours 1 seul slash final)
   // "/repo/" depuis "/repo/?p=..."
   var basePath = l.pathname.replace(/\/+$/, '/');
 
-  // "comparer" (sans slash de tête)
-  var normalizedPath = (rawPath || '/').replace(/^\/+/, '');
   // Route sans slash de tête/fin
   var normalizedPath = (rawPath || '/').replace(/^\/+/, '').replace(/\/+$/, '');
 
