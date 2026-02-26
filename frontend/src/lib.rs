@@ -46,14 +46,17 @@ fn App() -> impl IntoView {
         <Router base=base>
             <Layout>
                 <Routes>
-                    <Route path="/" view=HomePage />
-                    <Route path="/depute/:id" view=DeputePage />
-                    <Route path="/comparer" view=ComparerPage />
-                    <Route path="/exporter" view=ExportPage />
-                    <Route path="/stats-globales" view=StatsGlobalesPage />
-                    <Route path="/reseau" view=ReseauPage />
-                    <Route path="/positions-groupes" view=PositionsGroupesPage />
-                    <Route path="/methodologie" view=MethodePage />
+                    // NOTE: avec leptos_router, les chemins de Route doivent être relatifs au base du Router.
+                    // Des chemins absolus ici peuvent produire des 404 applicatifs sur GitHub Pages
+                    // quand le site est servi sous un sous-chemin (ex: /repo-name/).
+                    <Route path="" view=HomePage />
+                    <Route path="depute/:id" view=DeputePage />
+                    <Route path="comparer" view=ComparerPage />
+                    <Route path="exporter" view=ExportPage />
+                    <Route path="stats-globales" view=StatsGlobalesPage />
+                    <Route path="reseau" view=ReseauPage />
+                    <Route path="positions-groupes" view=PositionsGroupesPage />
+                    <Route path="methodologie" view=MethodePage />
                     <Route path="/*any" view=|| view! { <NotFound /> } />
                 </Routes>
             </Layout>

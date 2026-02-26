@@ -135,7 +135,18 @@ jobs:
       # FIX 2 : --public-url indispensable pour que les assets se chargent sur GitHub Pages
       - name: Build frontend
         working-directory: frontend
-        run: trunk build --release --dist ../dist --public-url /activite-deputes/
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+          REPO_OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          if [ "$REPO_NAME" = "${REPO_OWNER}.github.io" ]; then
+            PUBLIC_URL="/"
+          else
+            PUBLIC_URL="/$REPO_NAME/"
+          fi
+          echo "Using Trunk public URL: $PUBLIC_URL"
+          trunk build --release --dist ../dist --public-url "$PUBLIC_URL"
 
       # Les données arrivent APRÈS le build (trunk aurait écrasé docs/)
       - name: Download site data
@@ -147,8 +158,17 @@ jobs:
       # Nécessaire pour que le refresh / accès direct aux routes SPA ne donne pas 404
       - name: Create 404.html for GitHub Pages SPA routing
         shell: bash
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+          REPO_OWNER: ${{ github.repository_owner }}
         run: |
           set -euo pipefail
+          if [ "$REPO_NAME" = "${REPO_OWNER}.github.io" ]; then
+            REPO_BASE=""
+          else
+            REPO_BASE="/$REPO_NAME"
+          fi
+
           cat > dist/404.html <<'HTML'
           <!doctype html>
           <html>
@@ -158,13 +178,13 @@ jobs:
               <script>
                 (function () {
                   var l = window.location;
-                  var repoBase = '/activite-deputes';
+                  var repoBase = '__REPO_BASE__';
                   var path = l.pathname;
-                  if (path.indexOf(repoBase + '/') === 0) {
+                  if (repoBase && path.indexOf(repoBase + '/') === 0) {
                     path = path.slice(repoBase.length);
                   }
                   var newUrl =
-                    repoBase + '/?p=' + path.replace(/&/g, '~and~') +
+                    (repoBase || '') + '/?p=' + path.replace(/&/g, '~and~') +
                     (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
                     l.hash;
                   l.replace(newUrl);
@@ -174,6 +194,7 @@ jobs:
             <body></body>
           </html>
           HTML
+          sed -i "s|__REPO_BASE__|$REPO_BASE|g" dist/404.html
           echo "404.html generated:"
           head -20 dist/404.html
             
