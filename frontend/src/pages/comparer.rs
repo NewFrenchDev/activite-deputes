@@ -12,7 +12,7 @@ fn period_from_query(raw: &str) -> Option<Period> {
     match s.as_str() {
         "p30" | "30" | "30j" | "30d" | "30days" => Some(Period::P30),
         "p180" | "180" | "180j" | "180d" | "180days" => Some(Period::P180),
-        "leg" | "legislature" | "l17" => Some(Period::Leg),
+        "leg" | "legislature" | "l17" => Some(Period::LEG),
         _ => None,
     }
 }

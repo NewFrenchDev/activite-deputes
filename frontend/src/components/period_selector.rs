@@ -10,7 +10,7 @@ pub fn PeriodSelector(
         <div style="display:flex;gap:0.25rem;background:var(--bg-secondary);border:1px solid var(--bg-border);border-radius:7px;padding:3px;">
             <PeriodBtn label="30 j" p=Period::P30 current=period set=set_period />
             <PeriodBtn label="180 j" p=Period::P180 current=period set=set_period />
-            <PeriodBtn label="Législature" p=Period::Leg current=period set=set_period />
+            <PeriodBtn label="Législature" p=Period::LEG current=period set=set_period />
         </div>
     }
 }

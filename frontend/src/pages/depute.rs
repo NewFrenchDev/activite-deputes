@@ -13,7 +13,7 @@ fn period_query_value(period: Period) -> &'static str {
     match period {
         Period::P30 => "p30",
         Period::P180 => "p180",
-        Period::Leg => "leg",
+        Period::LEG => "leg",
     }
 }
 
@@ -1055,7 +1055,7 @@ fn collect_period_snapshots(
     store: &crate::store::AppStore,
     deputy_id: &str,
 ) -> Vec<PeriodSnapshotMini> {
-    [Period::P30, Period::P180, Period::Leg]
+    [Period::P30, Period::P180, Period::LEG]
         .into_iter()
         .filter_map(|p| {
             store.find_depute(p, deputy_id).map(|d| PeriodSnapshotMini {

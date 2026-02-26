@@ -117,7 +117,7 @@ pub fn StatsGlobalesPage() -> impl IntoView {
                 <div style="display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;margin-top:.85rem;">
                     <span style="font-size:.75rem;color:var(--text-muted);font-weight:600;">"Période d’activité"</span>
                     <div style="display:inline-flex;gap:.35rem;padding:.28rem;border-radius:10px;border:1px solid var(--bg-border);background:rgba(255,255,255,.02);">
-                        {[Period::P30, Period::P180, Period::Leg]
+                        {[Period::P30, Period::P180, Period::LEG]
                             .into_iter()
                             .map(|p| {
                                 view! {
