@@ -126,11 +126,7 @@ pub fn Layout(children: Children) -> impl IntoView {
 
 #[component]
 fn NavLink(path: &'static str, label: &'static str) -> impl IntoView {
-    let href = if path.is_empty() {
-        app_href("/")
-    } else {
-        app_href(path)     
-    };
+    let href = if path.is_empty() {"/"} else {path};
     
     view! {
         <A
