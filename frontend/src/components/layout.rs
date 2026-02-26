@@ -2,8 +2,6 @@ use leptos::*;
 use leptos_router::*;
 
 use crate::api::{fetch_status, inferred_github_repo_urls};
-use crate::utils::app_href;
-
 #[component]
 pub fn Layout(children: Children) -> impl IntoView {
     let status_res = create_resource(|| (), |_| fetch_status());
@@ -11,6 +9,7 @@ pub fn Layout(children: Children) -> impl IntoView {
     let repo_url = repo_links.as_ref().map(|(r, _)| r.clone());
     let issue_url = repo_links.as_ref().map(|(_, i)| i.clone());
     let (theme, set_theme) = create_signal(String::from("dark"));
+    let (mobile_nav_open, set_mobile_nav_open) = create_signal(false);
 
     let toggle_theme = move |_| {
         let next = if theme.get() == "dark" {
@@ -31,10 +30,10 @@ pub fn Layout(children: Children) -> impl IntoView {
         <div style="min-height:100vh;display:flex;flex-direction:column;">
             <header style="background:var(--bg-secondary);border-bottom:1px solid var(--bg-border);position:sticky;top:0;z-index:50;">
                 <div style="background:linear-gradient(90deg, rgba(245,158,11,.16), rgba(245,158,11,.06));border-bottom:1px solid rgba(245,158,11,.22);">
-                    <div style="max-width:1400px;margin:0 auto;padding:0.35rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap;">
+                    <div class="header-banner-row" style="max-width:1400px;margin:0 auto;padding:0.35rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap;">
                         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
                             <span style="font-size:0.65rem;font-weight:700;letter-spacing:.04em;padding:0.15rem 0.45rem;border-radius:999px;background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.35);color:var(--warning);">"BÊTA PUBLIQUE"</span>
-                            <span style="font-size:0.76rem;color:var(--text-secondary);">"Le site est fonctionnel mais en amélioration continue (UX, liens AN, couverture données)."</span>
+                            <span class="header-banner-text" style="font-size:0.76rem;color:var(--text-secondary);">"Le site est fonctionnel mais en amélioration continue (UX, liens AN, couverture données)."</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;">
                             <A href=crate::app_path!("/methodologie") attr:style="font-size:0.75rem;color:var(--accent);text-decoration:none;">"Méthode & limites"</A>
@@ -49,20 +48,20 @@ pub fn Layout(children: Children) -> impl IntoView {
                         </div>
                     </div>
                 </div>
-                <div style="max-width:1400px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;">
-                    <div style="display:flex;align-items:center;gap:2rem;">
-                        <A href=crate::app_path!("/home") attr:style="display:flex;align-items:center;gap:0.6rem;text-decoration:none;">
-                            <span style="width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;">
+                <div class="header-main-row" style="max-width:1400px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;min-height:56px;gap:0.75rem;">
+                    <div style="display:flex;align-items:center;gap:1.2rem;min-width:0;">
+                        <A href=crate::app_path!("/home") attr:style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;min-width:0;">
+                            <span style="width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5">
                                     <rect x="3" y="3" width="18" height="18" rx="2"/>
                                     <path d="M3 9h18M9 21V9"/>
                                 </svg>
                             </span>
                             <span style="font-weight:700;font-size:0.95rem;color:var(--text-primary)">Activité Députés</span>
-                            <span style="font-size:0.62rem;padding:0.12rem 0.35rem;border-radius:999px;border:1px solid rgba(245,158,11,.35);color:var(--warning);background:rgba(245,158,11,.08);font-weight:600;">"BETA"</span>
-                            <span style="font-size:0.65rem;color:var(--text-muted);font-weight:400;margin-top:2px;">"17e législature"</span>
+                            <span class="desktop-only" style="font-size:0.62rem;padding:0.12rem 0.35rem;border-radius:999px;border:1px solid rgba(245,158,11,.35);color:var(--warning);background:rgba(245,158,11,.08);font-weight:600;">"BETA"</span>
+                            <span class="desktop-only" style="font-size:0.65rem;color:var(--text-muted);font-weight:400;margin-top:2px;">"17e législature"</span>
                         </A>
-                        <nav style="display:flex;gap:0;padding-left:1rem;border-left:1px solid var(--bg-border);" aria-label="Navigation principale">
+                        <nav class="desktop-nav" style="display:flex;gap:0;padding-left:1rem;border-left:1px solid var(--bg-border);" aria-label="Navigation principale">
                             <NavLink path=crate::app_path!("/home") label="Accueil" />
                             <NavLink path=crate::app_path!("/comparer") label="Comparer" />
                             <NavLink path=crate::app_path!("/exporter") label="Exporter" />
@@ -72,7 +71,16 @@ pub fn Layout(children: Children) -> impl IntoView {
                             <NavLink path=crate::app_path!("/methodologie") label="Méthode & Sources" />
                         </nav>
                     </div>
-                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <button
+                            class="mobile-only"
+                            on:click=move |_| set_mobile_nav_open.update(|v| *v = !*v)
+                            style="background:none;border:1px solid var(--bg-border);border-radius:6px;padding:0.35rem 0.6rem;cursor:pointer;color:var(--text-secondary);font-size:0.8rem;"
+                            title="Afficher/masquer le menu"
+                            aria-label="Ouvrir le menu de navigation"
+                        >
+                            {move || if mobile_nav_open.get() { "✕" } else { "☰" }}
+                        </button>
                         <button
                             on:click=toggle_theme
                             style="background:none;border:1px solid var(--bg-border);border-radius:6px;padding:0.35rem 0.6rem;cursor:pointer;color:var(--text-secondary);font-size:0.8rem;"
@@ -81,6 +89,21 @@ pub fn Layout(children: Children) -> impl IntoView {
                             {move || if theme.get() == "dark" { "☀ Clair" } else { "⚫ Sombre" }}
                         </button>
                     </div>
+                </div>
+                <div
+                    class="nav-shell"
+                    class:open=move || mobile_nav_open.get()
+                    on:click=move |_| set_mobile_nav_open.set(false)
+                >
+                    <nav style="display:flex;gap:0;padding:0 1.5rem;border-top:1px solid var(--bg-border);" aria-label="Navigation principale">
+                        <NavLink path=crate::app_path!("/home") label="Accueil" />
+                        <NavLink path=crate::app_path!("/comparer") label="Comparer" />
+                        <NavLink path=crate::app_path!("/exporter") label="Exporter" />
+                        <NavLink path=crate::app_path!("/stats-globales") label="Stats globales" />
+                        <NavLink path=crate::app_path!("/reseau") label="Réseau" />
+                        <NavLink path=crate::app_path!("/positions-groupes") label="Positions groupes" />
+                        <NavLink path=crate::app_path!("/methodologie") label="Méthode & Sources" />
+                    </nav>
                 </div>
             </header>
 
@@ -133,7 +156,7 @@ fn NavLink(path: &'static str, label: &'static str) -> impl IntoView {
     view! {
         <A
             href=path
-            attr:style="padding:0 0.85rem;height:56px;display:flex;align-items:center;font-size:0.82rem;color:var(--text-secondary);text-decoration:none;border-bottom:2px solid transparent;transition:all 0.15s;"
+            attr:style="padding:0 0.85rem;height:48px;display:flex;align-items:center;font-size:0.82rem;color:var(--text-secondary);text-decoration:none;border-bottom:2px solid transparent;transition:all 0.15s;"
             active_class="nav-active"
             exact=true
         >

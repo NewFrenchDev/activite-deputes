@@ -2,10 +2,10 @@ use leptos::*;
 use leptos_router::use_query_map;
 use wasm_bindgen::JsCast;
 
-use crate::store::use_store;
-use crate::models::*;
-use crate::utils::{fmt_pct, groupe_color, matches_search};
 use crate::components::period_selector::PeriodSelector;
+use crate::models::*;
+use crate::store::use_store;
+use crate::utils::{fmt_pct, groupe_color, matches_search};
 
 fn period_from_query(raw: &str) -> Option<Period> {
     let s = raw.trim().to_ascii_lowercase();
@@ -27,7 +27,11 @@ pub fn ComparerPage() -> impl IntoView {
     let (selected_b_id, set_selected_b_id) = create_signal::<Option<String>>(None);
 
     let raw_stats = create_memo(move |_| {
-        store.stats_for(period.get()).get().and_then(|r| r.ok()).unwrap_or_default()
+        store
+            .stats_for(period.get())
+            .get()
+            .and_then(|r| r.ok())
+            .unwrap_or_default()
     });
 
     let raw_stats_a = raw_stats.clone();
@@ -67,7 +71,7 @@ pub fn ComparerPage() -> impl IntoView {
                 <PeriodSelector period=period set_period=set_period />
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;">
+            <div class="cmp-select-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;">
                 <Combobox
                     label="Député A"
                     color="var(--accent)"
@@ -97,7 +101,7 @@ pub fn ComparerPage() -> impl IntoView {
                     }.into_view();
                 }
                 view! {
-                    <div style="background:var(--bg-secondary);border:1px solid var(--bg-border);border-radius:8px;overflow:hidden;">
+                    <div class="cmp-table-wrap" style="background:var(--bg-secondary);border:1px solid var(--bg-border);border-radius:8px;overflow:hidden;overflow-x:auto;">
                         <table class="data-table" style="table-layout:fixed;">
                             <colgroup>
                                 <col style="width:220px;"/>
@@ -177,15 +181,18 @@ where
     FS: Fn(DeputeStats) + 'static + Clone,
     FC: Fn() + 'static + Clone,
 {
-    let (query, set_query)   = create_signal(String::new());
-    let (open, set_open)     = create_signal(false);
-    let list_id              = label.replace(' ', "-").to_lowercase();
-    let input_id             = format!("{list_id}-input");
+    let (query, set_query) = create_signal(String::new());
+    let (open, set_open) = create_signal(false);
+    let list_id = label.replace(' ', "-").to_lowercase();
+    let input_id = format!("{list_id}-input");
 
     let suggestions = create_memo(move |_| {
         let q = query.get();
-        if q.trim().is_empty() { return vec![]; }
-        all_stats.get()
+        if q.trim().is_empty() {
+            return vec![];
+        }
+        all_stats
+            .get()
             .into_iter()
             .filter(|d| matches_search(&format!("{} {}", d.prenom, d.nom), &q))
             .take(8)
@@ -316,7 +323,6 @@ where
     }
 }
 
-
 fn fmt_u32(v: f64) -> String {
     format!("{}", v as u32)
 }
@@ -342,8 +348,19 @@ fn CmpNum(
 ) -> impl IntoView {
     let winner = match (va, vb) {
         (Some(a), Some(b)) if (a - b).abs() > 1e-9 => {
-            if higher_better { if a > b { Some('a') } else { Some('b') } }
-            else              { if a < b { Some('a') } else { Some('b') } }
+            if higher_better {
+                if a > b {
+                    Some('a')
+                } else {
+                    Some('b')
+                }
+            } else {
+                if a < b {
+                    Some('a')
+                } else {
+                    Some('b')
+                }
+            }
         }
         _ => None,
     };

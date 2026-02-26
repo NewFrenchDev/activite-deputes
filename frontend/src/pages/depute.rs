@@ -2,15 +2,12 @@ use leptos::*;
 use leptos_router::*;
 
 use crate::api::{base_url, fetch_deputy_ppl_shard};
-use crate::store::use_store;
-use crate::models::*;
-use crate::utils::{fmt_pct, groupe_color, participation_class, app_href};
 use crate::components::{
-    kpi_card::KpiCard,
-    period_selector::PeriodSelector,
-    skeleton::SkeletonKpi,
-    tooltip::InfoIcon,
+    kpi_card::KpiCard, period_selector::PeriodSelector, skeleton::SkeletonKpi, tooltip::InfoIcon,
 };
+use crate::models::*;
+use crate::store::use_store;
+use crate::utils::{app_href, fmt_pct, groupe_color, participation_class};
 
 fn period_query_value(period: Period) -> &'static str {
     match period {
@@ -22,7 +19,7 @@ fn period_query_value(period: Period) -> &'static str {
 
 #[component]
 pub fn DeputePage() -> impl IntoView {
-    let store  = use_store();
+    let store = use_store();
     let params = use_params_map();
     let params_for_ppl = params.clone();
     let dep_id = move || params.with(|p| p.get("id").cloned().unwrap_or_default());
@@ -152,10 +149,10 @@ pub fn DeputePage() -> impl IntoView {
                             let hatvp_href = d.uri_hatvp.as_deref().map(normalize_external_url);
 
                             view! {
-                                <div class="reveal">
+                                <div class="reveal depute-page">
                                     // Header enrichi (photo + liens + identité)
                                     <div style=format!("margin-bottom:1.5rem;padding-bottom:1.5rem;padding-left:0.9rem;border-bottom:1px solid var(--bg-border);border-left:4px solid {};", grp_color)>
-                                        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+                                        <div class="depute-hero-top" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
                                             <div style="display:flex;align-items:flex-start;gap:1rem;flex-wrap:wrap;">
                                                 <div style=format!("width:96px;height:96px;border-radius:14px;overflow:hidden;border:1px solid {}33;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02), 0 0 0 1px {}22;", grp_color, grp_color)>
                                                     {move || {
@@ -262,9 +259,9 @@ pub fn DeputePage() -> impl IntoView {
                                                 </div>
                                             </div>
 
-                                            <div style="display:flex;flex-direction:column;gap:0.75rem;align-items:flex-end;min-width:260px;">
+                                            <div class="depute-period-panel" style="display:flex;flex-direction:column;gap:0.75rem;align-items:flex-end;min-width:260px;">
                                                 <PeriodSelector period=period set_period=set_period />
-                                                <div style=format!("padding:0.75rem 0.9rem;background:var(--bg-secondary);border:1px solid var(--bg-border);border-left:3px solid {};border-radius:10px;min-width:260px;", grp_color)>
+                                                <div class="depute-period-card" style=format!("padding:0.75rem 0.9rem;background:var(--bg-secondary);border:1px solid var(--bg-border);border-left:3px solid {};border-radius:10px;min-width:260px;", grp_color)>
                                                     <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;">"Période calculée"</div>
                                                     <div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.4;">
                                                         <strong style="color:var(--text-primary);">{format!("{} → {}", d.period_start, d.period_end)}</strong>
@@ -668,7 +665,6 @@ pub fn DeputePage() -> impl IntoView {
     }
 }
 
-
 #[component]
 fn CosignNetworkSection(d: DeputeStats) -> impl IntoView {
     let accent_color = groupe_color(d.groupe_abrev.as_deref());
@@ -683,7 +679,8 @@ fn CosignNetworkSection(d: DeputeStats) -> impl IntoView {
         let in_pct = pct_of(in_count, total);
         let out_pct = pct_of(out_count, total);
         let (badge_label, badge_color) = transversalite_badge(out_pct);
-        let has_any = total > 0 || !network.in_group.is_empty() || !network.out_group_groups.is_empty();
+        let has_any =
+            total > 0 || !network.in_group.is_empty() || !network.out_group_groups.is_empty();
 
         return view! {
             <div style="margin-bottom:1.75rem;">
@@ -785,7 +782,7 @@ fn CosignNetworkSection(d: DeputeStats) -> impl IntoView {
                     "Co-signatures (réseau)"
                     <InfoIcon text="Fallback d’affichage : détail réseau non disponible dans ce dataset, affichage des co-signataires les plus fréquents." />
                 </h2>
-                <div style=format!("background:var(--bg-secondary);border:1px solid var(--bg-border);border-left:3px solid {};border-radius:8px;overflow:hidden;", accent_color)>
+                <div style=format!("background:var(--bg-secondary);border:1px solid var(--bg-border);border-left:3px solid {};border-radius:8px;overflow-x:auto;", accent_color)>
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -836,7 +833,11 @@ fn CosignNetworkSection(d: DeputeStats) -> impl IntoView {
 }
 
 #[component]
-fn MiniMetric(label: &'static str, value: String, #[prop(optional)] subtle: Option<String>) -> impl IntoView {
+fn MiniMetric(
+    label: &'static str,
+    value: String,
+    #[prop(optional)] subtle: Option<String>,
+) -> impl IntoView {
     view! {
         <div style="padding:.6rem .7rem;border:1px solid var(--bg-border);border-radius:8px;background:rgba(255,255,255,.01);">
             <div style="font-size:.72rem;color:var(--text-secondary);margin-bottom:.15rem;">{label}</div>
@@ -868,7 +869,11 @@ fn PeerRow(peer: CosignPeer) -> impl IntoView {
 }
 
 fn pct_of(part: u32, total: u32) -> f64 {
-    if total == 0 { 0.0 } else { (part as f64 / total as f64) * 100.0 }
+    if total == 0 {
+        0.0
+    } else {
+        (part as f64 / total as f64) * 100.0
+    }
 }
 
 fn transversalite_badge(out_pct: f64) -> (&'static str, &'static str) {
@@ -889,7 +894,6 @@ fn format_group_bucket_label(abrev: Option<&str>, nom: Option<&str>) -> String {
         _ => "Groupe non renseigné".to_string(),
     }
 }
-
 
 #[derive(Debug, Clone)]
 struct PeriodSnapshotMini {
@@ -920,7 +924,11 @@ fn BenchmarkRow(
     group_avg: Option<f64>,
     #[prop(optional)] is_percent: bool,
 ) -> impl IntoView {
-    let value_label = if is_percent { fmt_pct(value) } else { fmt_number(value) };
+    let value_label = if is_percent {
+        fmt_pct(value)
+    } else {
+        fmt_number(value)
+    };
     let median_delta = median.map(|m| value - m);
     let group_delta = group_avg.map(|g| value - g);
 
@@ -947,7 +955,11 @@ fn DeltaChip(
     let (txt, color) = match delta {
         Some(d) => {
             let sign = if d > 0.0 { "+" } else { "" };
-            let v = if is_percent { format!("{sign}{:.1} pts", d * 100.0) } else { format!("{sign}{:.1}", d) };
+            let v = if is_percent {
+                format!("{sign}{:.1} pts", d * 100.0)
+            } else {
+                format!("{sign}{:.1}", d)
+            };
             let color = if d > 0.0 {
                 "var(--success)"
             } else if d < 0.0 {
@@ -1039,7 +1051,10 @@ fn render_deputy_ppl_item(item: DeputyPplItemSummary) -> View {
     }.into_view()
 }
 
-fn collect_period_snapshots(store: &crate::store::AppStore, deputy_id: &str) -> Vec<PeriodSnapshotMini> {
+fn collect_period_snapshots(
+    store: &crate::store::AppStore,
+    deputy_id: &str,
+) -> Vec<PeriodSnapshotMini> {
     [Period::P30, Period::P180, Period::Leg]
         .into_iter()
         .filter_map(|p| {
@@ -1082,7 +1097,11 @@ where
         n += 1;
         sum += v;
     }
-    if n == 0 { None } else { Some(sum / n as f64) }
+    if n == 0 {
+        None
+    } else {
+        Some(sum / n as f64)
+    }
 }
 
 fn median_of<I>(iter: I) -> Option<f64>
@@ -1109,7 +1128,6 @@ fn fmt_number(value: f64) -> String {
         format!("{value:.1}")
     }
 }
-
 
 fn format_mandat_episodes_summary(episodes: &[MandatAssembleeEpisode]) -> String {
     episodes
@@ -1166,14 +1184,18 @@ fn normalize_external_url(raw: &str) -> String {
 
 fn dept_circo_label(dept: Option<&str>, circo: Option<&str>) -> Option<String> {
     match (dept, circo) {
-        (Some(d), Some(c)) if !d.is_empty() && !c.is_empty() => Some(format!("{} — Circonscription n°{}", d, c)),
+        (Some(d), Some(c)) if !d.is_empty() && !c.is_empty() => {
+            Some(format!("{} — Circonscription n°{}", d, c))
+        }
         (Some(d), _) if !d.is_empty() => Some(d.to_string()),
         _ => None,
     }
 }
 
 fn display_host(url: &str) -> String {
-    let s = url.trim_start_matches("https://").trim_start_matches("http://");
+    let s = url
+        .trim_start_matches("https://")
+        .trim_start_matches("http://");
     s.trim_end_matches('/').to_string()
 }
 

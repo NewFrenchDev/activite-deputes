@@ -258,6 +258,55 @@
     nav a { transition: color 0.15s; }
     nav a.active { color: var(--accent); border-bottom: 1px solid var(--accent); }
 
+    .nav-active { color: var(--accent) !important; border-bottom-color: var(--accent) !important; }
+    .mobile-only { display: none; }
+    .desktop-nav { display: flex; }
+
+    @media (max-width: 1024px) {
+      .header-banner-row, .header-main-row { padding-left: 1rem !important; padding-right: 1rem !important; }
+      main { padding: 1rem !important; }
+      .data-table th, .data-table td { padding: 0.5rem 0.55rem; font-size: 0.76rem; }
+      .kpi-card { padding: 1rem; }
+      .reseau-main-grid { grid-template-columns: minmax(220px, 300px) 1fr; }
+    }
+
+    @media (max-width: 800px) {
+      .desktop-only { display: none !important; }
+      .desktop-nav { display: none !important; }
+      .mobile-only { display: inline-flex !important; }
+      .header-banner-text { display: none; }
+      .nav-shell { display: none; border-top: 1px solid var(--bg-border); }
+      .nav-shell.open { display: block; }
+      .nav-shell nav {
+        display: grid !important;
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding: 0 !important;
+      }
+      .nav-shell nav a {
+        height: auto !important;
+        min-height: 44px;
+        border-bottom: 1px solid var(--bg-border) !important;
+      }
+      .btn { padding: 0.4rem 0.75rem; font-size: 0.78rem; }
+
+      .cmp-select-grid { grid-template-columns: 1fr !important; gap: 0.9rem !important; }
+      .cmp-table-wrap { overflow-x: auto !important; }
+      .cmp-table-wrap .data-table { min-width: 620px; }
+
+      .depute-hero-top { flex-direction: column; }
+      .depute-period-panel { width: 100%; min-width: 0 !important; align-items: stretch !important; }
+      .depute-period-card { min-width: 0 !important; width: 100%; }
+
+      .reseau-main-grid { grid-template-columns: 1fr !important; }
+      .reseau-edge-row,
+      .reseau-partner-row { grid-template-columns: 1fr !important; gap: 0.35rem !important; }
+    }
+
+    @media (min-width: 801px) {
+      .nav-shell { display: none !important; }
+    }
+
     /* Badge groupe */
     .badge {
       display: inline-block;

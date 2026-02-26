@@ -4,10 +4,10 @@ use chrono::NaiveDate;
 use leptos::*;
 use leptos_router::A;
 
-use crate::utils::app_href;
 use crate::components::period_selector::PeriodSelector;
 use crate::models::{CosignNetworkStats, DeputeStats, Period};
 use crate::store::use_store;
+use crate::utils::app_href;
 
 #[derive(Debug, Clone, Default, PartialEq)]
 struct GroupNode {
@@ -89,7 +89,6 @@ struct FocusGroupData {
     bridge_deputies: Vec<BridgeDeputy>,
 }
 
-
 #[derive(Debug, Clone, Default)]
 struct TmpGroup {
     label: String,
@@ -110,12 +109,8 @@ pub fn ReseauPage() -> impl IntoView {
     let store_for_stats = store.clone();
     let stats_result = create_memo(move |_| store_for_stats.stats_for(period.get()).get());
 
-    let stats_data = create_memo(move |_| {
-        stats_result
-            .get()
-            .and_then(|r| r.ok())
-            .unwrap_or_default()
-    });
+    let stats_data =
+        create_memo(move |_| stats_result.get().and_then(|r| r.ok()).unwrap_or_default());
 
     let summary = create_memo(move |_| build_group_network(&stats_data.get()));
 
@@ -225,7 +220,7 @@ pub fn ReseauPage() -> impl IntoView {
                                     <MetricCard label="Part transpartisane" value=fmt_pct1_ratio(trans_share) sub=fmt_u64(s.total_out_group) />
                                 </div>
 
-                                <div style="display:grid;grid-template-columns:minmax(260px,320px) 1fr;gap:1rem;align-items:start;">
+                                <div class="reseau-main-grid" style="display:grid;grid-template-columns:minmax(260px,320px) 1fr;gap:1rem;align-items:start;">
                                     <GroupListPanel
                                         summary=s.clone()
                                         selected_key=selected_key.clone()
@@ -498,7 +493,7 @@ fn TopEdgesSection(summary: GroupNetworkSummary) -> impl IntoView {
                             let left_color = group_color(&e.a_key);
                             let right_color = group_color(&e.b_key);
                             view! {
-                                <div style="display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(120px,2fr) auto;gap:.7rem;align-items:center;">
+                                <div class="reseau-edge-row" style="display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(120px,2fr) auto;gap:.7rem;align-items:center;">
                                     <div style="font-size:.77rem;color:var(--text-secondary);display:flex;align-items:center;gap:.45rem;min-width:0;">
                                         <span style=format!("width:8px;height:8px;border-radius:999px;background:{};display:inline-block;flex:0 0 auto;", left_color)></span>
                                         <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{e.a_label.clone()}</span>
@@ -671,7 +666,12 @@ fn MiniStat(label: &'static str, value: String, sub: String) -> impl IntoView {
 }
 
 #[component]
-fn PartnerListCard(title: &'static str, subtitle: &'static str, rows: Vec<PartnerFlow>, accent: String) -> impl IntoView {
+fn PartnerListCard(
+    title: &'static str,
+    subtitle: &'static str,
+    rows: Vec<PartnerFlow>,
+    accent: String,
+) -> impl IntoView {
     let rows = rows.into_iter().take(8).collect::<Vec<_>>();
     let max_v = rows.iter().map(|r| r.count).max().unwrap_or(1);
     view! {
@@ -689,7 +689,7 @@ fn PartnerListCard(title: &'static str, subtitle: &'static str, rows: Vec<Partne
                         {rows.into_iter().map(|r| {
                             let pct = (r.count as f64 * 100.0 / max_v as f64).clamp(0.0, 100.0);
                             view! {
-                                <div style="display:grid;grid-template-columns:minmax(90px,1.3fr) minmax(80px,2fr) auto;gap:.55rem;align-items:center;">
+                                <div class="reseau-partner-row" style="display:grid;grid-template-columns:minmax(90px,1.3fr) minmax(80px,2fr) auto;gap:.55rem;align-items:center;">
                                     <div title=r.full_name.clone() style="font-size:.74rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:.35rem;">
                                         <span style=format!("width:7px;height:7px;border-radius:999px;background:{};display:inline-block;", group_color(&r.key))></span>
                                         {r.label.clone()}
@@ -712,7 +712,6 @@ fn PartnerListCard(title: &'static str, subtitle: &'static str, rows: Vec<Partne
 }
 
 fn build_group_network(stats: &[DeputeStats]) -> GroupNetworkSummary {
-
     let mut groups: BTreeMap<String, TmpGroup> = BTreeMap::new();
     let mut matrix_map: HashMap<(String, String), u64> = HashMap::new();
 
@@ -737,8 +736,16 @@ fn build_group_network(stats: &[DeputeStats]) -> GroupNetworkSummary {
         }
         entry.deputy_count += 1;
 
-        period_start = Some(period_start.map(|x| x.min(d.period_start)).unwrap_or(d.period_start));
-        period_end = Some(period_end.map(|x| x.max(d.period_end)).unwrap_or(d.period_end));
+        period_start = Some(
+            period_start
+                .map(|x| x.min(d.period_start))
+                .unwrap_or(d.period_start),
+        );
+        period_end = Some(
+            period_end
+                .map(|x| x.max(d.period_end))
+                .unwrap_or(d.period_end),
+        );
 
         if let Some(net) = &d.cosign_network {
             deputies_with_network += 1;
@@ -753,8 +760,16 @@ fn build_group_network(stats: &[DeputeStats]) -> GroupNetworkSummary {
         .into_iter()
         .map(|(key, g)| GroupNode {
             key: key.clone(),
-            label: if g.label.is_empty() { key.clone() } else { g.label },
-            full_name: if g.full_name.is_empty() { key.clone() } else { g.full_name },
+            label: if g.label.is_empty() {
+                key.clone()
+            } else {
+                g.label
+            },
+            full_name: if g.full_name.is_empty() {
+                key.clone()
+            } else {
+                g.full_name
+            },
             deputy_count: g.deputy_count,
             deputies_with_network: g.deputies_with_network,
             total_cosignatures: g.total_cosignatures,
@@ -812,7 +827,12 @@ fn build_group_network(stats: &[DeputeStats]) -> GroupNetworkSummary {
         }
     }
 
-    top_edges.sort_by(|a, b| b.total.cmp(&a.total).then(a.a_label.cmp(&b.a_label)).then(a.b_label.cmp(&b.b_label)));
+    top_edges.sort_by(|a, b| {
+        b.total
+            .cmp(&a.total)
+            .then(a.a_label.cmp(&b.a_label))
+            .then(a.b_label.cmp(&b.b_label))
+    });
 
     GroupNetworkSummary {
         groups: group_vec,
@@ -830,7 +850,11 @@ fn build_group_network(stats: &[DeputeStats]) -> GroupNetworkSummary {
     }
 }
 
-fn build_focus_group(summary: &GroupNetworkSummary, stats: &[DeputeStats], key: &str) -> Option<FocusGroupData> {
+fn build_focus_group(
+    summary: &GroupNetworkSummary,
+    stats: &[DeputeStats],
+    key: &str,
+) -> Option<FocusGroupData> {
     let idx = summary.groups.iter().position(|g| g.key == key)?;
     let group = summary.groups[idx].clone();
 
@@ -869,7 +893,11 @@ fn build_focus_group(summary: &GroupNetworkSummary, stats: &[DeputeStats], key: 
                 nom_complet: format!("{} {}", d.prenom, d.nom),
                 out_group_count: out,
                 total_cosignatures: total,
-                transpartisan_rate: if total > 0 { out as f64 / total as f64 } else { 0.0 },
+                transpartisan_rate: if total > 0 {
+                    out as f64 / total as f64
+                } else {
+                    0.0
+                },
                 unique_cosignataires: net.unique_cosignataires,
             })
         })
@@ -878,7 +906,11 @@ fn build_focus_group(summary: &GroupNetworkSummary, stats: &[DeputeStats], key: 
     bridge_deputies.sort_by(|a, b| {
         b.out_group_count
             .cmp(&a.out_group_count)
-            .then_with(|| b.transpartisan_rate.partial_cmp(&a.transpartisan_rate).unwrap_or(std::cmp::Ordering::Equal))
+            .then_with(|| {
+                b.transpartisan_rate
+                    .partial_cmp(&a.transpartisan_rate)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
             .then_with(|| a.nom_complet.cmp(&b.nom_complet))
     });
 
@@ -894,7 +926,11 @@ fn build_focus_group(summary: &GroupNetworkSummary, stats: &[DeputeStats], key: 
     })
 }
 
-fn build_partner_list_from_row(summary: &GroupNetworkSummary, idx: usize, outgoing: bool) -> Vec<PartnerFlow> {
+fn build_partner_list_from_row(
+    summary: &GroupNetworkSummary,
+    idx: usize,
+    outgoing: bool,
+) -> Vec<PartnerFlow> {
     let total = if outgoing {
         summary.matrix[idx]
             .iter()
@@ -917,7 +953,11 @@ fn build_partner_list_from_row(summary: &GroupNetworkSummary, idx: usize, outgoi
         if j == idx {
             continue;
         }
-        let count = if outgoing { summary.matrix[idx][j] } else { summary.matrix[j][idx] };
+        let count = if outgoing {
+            summary.matrix[idx][j]
+        } else {
+            summary.matrix[j][idx]
+        };
         if count == 0 {
             continue;
         }
@@ -927,7 +967,11 @@ fn build_partner_list_from_row(summary: &GroupNetworkSummary, idx: usize, outgoi
             label: g.label.clone(),
             full_name: g.full_name.clone(),
             count,
-            pct: if total > 0 { count as f64 * 100.0 / total as f64 } else { 0.0 },
+            pct: if total > 0 {
+                count as f64 * 100.0 / total as f64
+            } else {
+                0.0
+            },
         });
     }
     rows.sort_by(|a, b| b.count.cmp(&a.count).then(a.label.cmp(&b.label)));
@@ -956,7 +1000,11 @@ fn build_partner_list_symmetric(summary: &GroupNetworkSummary, idx: usize) -> Ve
         });
     }
     for r in &mut rows {
-        r.pct = if total > 0 { r.count as f64 * 100.0 / total as f64 } else { 0.0 };
+        r.pct = if total > 0 {
+            r.count as f64 * 100.0 / total as f64
+        } else {
+            0.0
+        };
     }
     rows.sort_by(|a, b| b.count.cmp(&a.count).then(a.label.cmp(&b.label)));
     rows
@@ -977,13 +1025,19 @@ fn apply_cosign_network(
 
     let in_group = net.in_group_count as u64;
     if in_group > 0 {
-        *matrix_map.entry((src_key.to_string(), src_key.to_string())).or_insert(0) += in_group;
+        *matrix_map
+            .entry((src_key.to_string(), src_key.to_string()))
+            .or_insert(0) += in_group;
     }
 
     for bucket in &net.out_group_groups {
         let dst_key = normalize_group_key(bucket.groupe_abrev.as_deref());
-        let dst_label = display_group_label(bucket.groupe_abrev.as_deref(), bucket.groupe_nom.as_deref());
-        let dst_full = bucket.groupe_nom.clone().unwrap_or_else(|| dst_label.clone());
+        let dst_label =
+            display_group_label(bucket.groupe_abrev.as_deref(), bucket.groupe_nom.as_deref());
+        let dst_full = bucket
+            .groupe_nom
+            .clone()
+            .unwrap_or_else(|| dst_label.clone());
 
         let entry = groups.entry(dst_key.clone()).or_default();
         if entry.label.is_empty() {
@@ -995,14 +1049,20 @@ fn apply_cosign_network(
 
         let count = bucket.count_total as u64;
         if count > 0 {
-            *matrix_map.entry((src_key.to_string(), dst_key)).or_insert(0) += count;
+            *matrix_map
+                .entry((src_key.to_string(), dst_key))
+                .or_insert(0) += count;
         }
     }
 }
 
 fn normalize_group_key(v: Option<&str>) -> String {
     let s = v.unwrap_or("NI").trim();
-    if s.is_empty() { "NI".to_string() } else { s.to_uppercase() }
+    if s.is_empty() {
+        "NI".to_string()
+    } else {
+        s.to_uppercase()
+    }
 }
 
 fn display_group_label(abrev: Option<&str>, nom: Option<&str>) -> String {
