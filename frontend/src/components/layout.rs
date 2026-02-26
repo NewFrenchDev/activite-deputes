@@ -126,9 +126,15 @@ pub fn Layout(children: Children) -> impl IntoView {
 
 #[component]
 fn NavLink(path: &'static str, label: &'static str) -> impl IntoView {
+    let href = if path.is_empty() {
+        app_href("/")
+    } else {
+        app_href(path)     
+    };
+    
     view! {
         <A
-            href=path
+            href=href
             attr:style="padding:0 0.85rem;height:56px;display:flex;align-items:center;font-size:0.82rem;color:var(--text-secondary);text-decoration:none;border-bottom:2px solid transparent;transition:all 0.15s;"
             active_class="nav-active"
             exact=true
