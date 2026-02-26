@@ -2,7 +2,7 @@ use leptos::*;
 use leptos_router::{A, use_query_map};
 
 use crate::api::{fetch_group_ppl_group_shard, fetch_group_ppl_index, inferred_github_repo_urls};
-use crate::models::{GroupPplGroupIndexEntry, GroupPplGroupShard, GroupPplItemSummary, SignerPreviewEntry};
+use crate::models::{GroupPplGroupIndexEntry, GroupPplItemSummary, SignerPreviewEntry};
 use crate::utils::{matches_search, normalize_search, app_href};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

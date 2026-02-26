@@ -9,7 +9,6 @@ use leptos::*;
 use leptos_router::*;
 use wasm_bindgen::prelude::*;
 
-use crate::utils::{app_base_path, app_href};
 use components::layout::Layout;
 use pages::{
     comparer::ComparerPage, depute::DeputePage, exporter::ExportPage, home::HomePage,
@@ -19,8 +18,6 @@ use pages::{
 use store::provide_store;
 
 use std::sync::OnceLock;
-
-static BASE_PATH: OnceLock<&'static str> = OnceLock::new();
 
 #[wasm_bindgen(start)]
 pub fn main() {
@@ -52,11 +49,8 @@ fn App() -> impl IntoView {
     }
 }
 
-use leptos_router::use_location;
-
 #[component]
 fn NotFound() -> impl IntoView {
-    let loc = use_location();
     view! {
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem;">
             <p style="font-size:3rem;color:var(--text-muted)">404</p>

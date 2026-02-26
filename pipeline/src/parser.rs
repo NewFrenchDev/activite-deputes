@@ -1215,20 +1215,6 @@ fn parse_dossier(v: &serde_json::Value) -> Option<Dossier> {
     })
 }
 
-fn find_json_file(dir: &Path) -> Result<std::path::PathBuf> {
-    if !dir.exists() {
-        anyhow::bail!("Répertoire non trouvé: {:?}", dir);
-    }
-    for entry in std::fs::read_dir(dir)? {
-        let entry = entry?;
-        let path = entry.path();
-        if path.extension().and_then(|e| e.to_str()) == Some("json") {
-            return Ok(path);
-        }
-    }
-    anyhow::bail!("Aucun fichier JSON dans {:?}", dir)
-}
-
 fn parse_date(s: &str) -> Option<NaiveDate> {
     let s = s.trim();
     if s.is_empty() || s == "null" {
