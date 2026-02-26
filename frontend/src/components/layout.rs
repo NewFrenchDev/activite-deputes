@@ -59,13 +59,13 @@ pub fn Layout(children: Children) -> impl IntoView {
                             <span style="font-size:0.65rem;color:var(--text-muted);font-weight:400;margin-top:2px;">"17e législature"</span>
                         </A>
                         <nav style="display:flex;gap:0;padding-left:1rem;border-left:1px solid var(--bg-border);" aria-label="Navigation principale">
-                            <NavLink path="/" label="Accueil" />
-                            <NavLink path="/comparer" label="Comparer" />
-                            <NavLink path="/exporter" label="Exporter" />
-                            <NavLink path="/stats-globales" label="Stats globales" />
-                            <NavLink path="/reseau" label="Réseau" />
-                            <NavLink path="/positions-groupes" label="Positions groupes" />
-                            <NavLink path="/methodologie" label="Méthode & Sources" />
+                            <NavLink path="" label="Accueil" />
+                            <NavLink path="comparer" label="Comparer" />
+                            <NavLink path="exporter" label="Exporter" />
+                            <NavLink path="stats-globales" label="Stats globales" />
+                            <NavLink path="reseau" label="Réseau" />
+                            <NavLink path="positions-groupes" label="Positions groupes" />
+                            <NavLink path="methodologie" label="Méthode & Sources" />
                         </nav>
                     </div>
                     <div style="display:flex;align-items:center;gap:0.75rem;">
@@ -126,10 +126,9 @@ pub fn Layout(children: Children) -> impl IntoView {
 
 #[component]
 fn NavLink(path: &'static str, label: &'static str) -> impl IntoView {
-    let href = app_href(path);
     view! {
         <A
-            href=href
+            href=path
             attr:style="padding:0 0.85rem;height:56px;display:flex;align-items:center;font-size:0.82rem;color:var(--text-secondary);text-decoration:none;border-bottom:2px solid transparent;transition:all 0.15s;"
             active_class="nav-active"
             exact=true
