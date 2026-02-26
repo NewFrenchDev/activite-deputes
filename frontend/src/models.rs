@@ -181,7 +181,7 @@ pub struct CosignGroupBucket {
 pub enum Period {
     P30,
     P180,
-    Leg,
+    LEG,
 }
 
 impl Period {
@@ -189,7 +189,7 @@ impl Period {
         match self {
             Period::P30 => "30 jours",
             Period::P180 => "180 jours",
-            Period::Leg => "Législature",
+            Period::LEG => "Législature",
         }
     }
 
@@ -197,7 +197,7 @@ impl Period {
         match self {
             Period::P30 => "data/deputes_P30.json",
             Period::P180 => "data/deputes_P180.json",
-            Period::Leg => "data/deputes_LEG.json",
+            Period::LEG => "data/deputes_LEG.json",
         }
     }
 
@@ -205,7 +205,7 @@ impl Period {
         match self {
             Period::P30 => "exports/deputes_activity_P30.csv",
             Period::P180 => "exports/deputes_activity_P180.csv",
-            Period::Leg => "exports/deputes_activity_LEG.csv",
+            Period::LEG => "exports/deputes_activity_LEG.csv",
         }
     }
 }

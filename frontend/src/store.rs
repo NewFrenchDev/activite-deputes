@@ -18,7 +18,7 @@ impl AppStore {
             status:     create_resource(|| (), |_| fetch_status()),
             stats_p30:  create_resource(|| (), |_| fetch_stats(Period::P30)),
             stats_p180: create_resource(|| (), |_| fetch_stats(Period::P180)),
-            stats_leg:  create_resource(|| (), |_| fetch_stats(Period::Leg)),
+            stats_leg:  create_resource(|| (), |_| fetch_stats(Period::LEG)),
         }
     }
 
@@ -26,7 +26,7 @@ impl AppStore {
         match period {
             Period::P30  => self.stats_p30,
             Period::P180 => self.stats_p180,
-            Period::Leg  => self.stats_leg,
+            Period::LEG  => self.stats_leg,
         }
     }
 

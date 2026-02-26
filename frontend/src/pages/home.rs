@@ -18,7 +18,7 @@ fn period_window_suffix(period: Period) -> &'static str {
     match period {
         Period::P30 => "sur les 30 derniers jours",
         Period::P180 => "sur les 180 derniers jours",
-        Period::Leg => "sur la législature",
+        Period::LEG => "sur la législature",
     }
 }
 
@@ -26,7 +26,7 @@ fn period_window_short(period: Period) -> &'static str {
     match period {
         Period::P30 => "fenêtre 30 jours",
         Period::P180 => "fenêtre 180 jours",
-        Period::Leg => "législature",
+        Period::LEG => "législature",
     }
 }
 

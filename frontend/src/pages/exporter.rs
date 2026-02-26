@@ -12,7 +12,7 @@ pub fn ExportPage() -> impl IntoView {
     let exports = vec![
         (Period::P30,  "Activité — 30 derniers jours glissants"),
         (Period::P180, "Activité — 180 derniers jours glissants"),
-        (Period::Leg,  "Activité — Depuis début de législature / mandat"),
+        (Period::LEG,  "Activité — Depuis début de législature / mandat"),
     ];
 
     view! {
@@ -202,7 +202,7 @@ impl CsvLabel for Period {
         match self {
             Period::P30  => "deputes_activity_P30",
             Period::P180 => "deputes_activity_P180",
-            Period::Leg  => "deputes_activity_LEG",
+            Period::LEG  => "deputes_activity_LEG",
         }
     }
 }
