@@ -57,7 +57,7 @@ pub fn DeputePage() -> impl IntoView {
     view! {
         <div>
             <div style="margin-bottom:1rem;">
-                <A href=app_href("/") attr:style="color:var(--accent);font-size:0.82rem;text-decoration:none;">
+                <A href=crate::app_path!("/home") attr:style="color:var(--accent);font-size:0.82rem;text-decoration:none;">
                     "← Retour au tableau"
                 </A>
             </div>
@@ -78,7 +78,7 @@ pub fn DeputePage() -> impl IntoView {
                             <div style="text-align:center;padding:3rem;color:var(--text-muted);">
                                 <p style="font-size:1.2rem;margin-bottom:0.5rem;">"Député non trouvé"</p>
                                 <p style="font-size:0.82rem;">"L'identifiant "{dep_id()}" est introuvable dans les données de la période sélectionnée."</p>
-                                <A href=app_href("/") class="btn" attr:style="margin-top:1rem;">"Retour à l'accueil"</A>
+                                <A href=crate::app_path!("/home") class="btn" attr:style="margin-top:1rem;">"Retour à l'accueil"</A>
                             </div>
                         }.into_view(),
                         Some(d) => {
@@ -656,7 +656,7 @@ pub fn DeputePage() -> impl IntoView {
                                     <div style=format!("padding:0.75rem 1rem;background:var(--bg-secondary);border:1px solid var(--bg-border);border-left:3px solid {};border-radius:6px;font-size:0.75rem;color:var(--text-muted);line-height:1.6;", grp_color)>
                                         "Ces indicateurs mesurent uniquement l'activité observable dans les données open data officielles. "
                                         "Ils ne reflètent pas le travail local, les réunions non publiques, les négociations informelles ni l'implication hors hémicycle. "
-                                        <A href=app_href("/methodologie") attr:style="color:var(--accent);">"→ Lire la méthodologie complète"</A>
+                                        <A href=crate::app_path!("/methodologie") attr:style="color:var(--accent);">"→ Lire la méthodologie complète"</A>
                                     </div>
                                 </div>
                             }.into_view()

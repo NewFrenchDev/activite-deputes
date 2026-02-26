@@ -32,23 +32,19 @@ pub fn main() {
 fn App() -> impl IntoView {
     // Store global initialisé une seule fois à la racine
     provide_store();
-
-    // Le router Leptos attend un base sans slash final (sauf "/").
-    // On garde une valeur stable pour éviter toute divergence au runtime.
-    let base: &'static str = *BASE_PATH.get_or_init(|| Box::leak(app_base_path().into_boxed_str()));
-
+    
     view! {
-        <Router base="/activite-deputes">
+        <Router base=crate::app_path!("")>
             <Layout>
                 <Routes>
-                    <Route path="/activite-deputes/home" view=HomePage />
-                    <Route path="/activite-deputes/depute/:id" view=DeputePage />
-                    <Route path="/activite-deputes/comparer" view=ComparerPage />
-                    <Route path="/activite-deputes/exporter" view=ExportPage />
-                    <Route path="/activite-deputes/stats-globales" view=StatsGlobalesPage />
-                    <Route path="/activite-deputes/reseau" view=ReseauPage />
-                    <Route path="/activite-deputes/positions-groupes" view=PositionsGroupesPage />
-                    <Route path="/activite-deputes/methodologie" view=MethodePage />
+                    <Route path=crate::app_path!("/home") view=HomePage />
+                    <Route path=crate::app_path!("/depute/:id") view=DeputePage />
+                    <Route path=crate::app_path!("/comparer") view=ComparerPage />
+                    <Route path=crate::app_path!("/exporter") view=ExportPage />
+                    <Route path=crate::app_path!("/stats-globales") view=StatsGlobalesPage />
+                    <Route path=crate::app_path!("/reseau") view=ReseauPage />
+                    <Route path=crate::app_path!("/positions-groupes") view=PositionsGroupesPage />
+                    <Route path=crate::app_path!("/methodologie") view=MethodePage />
                     <Route path="/*any" view=|| view! { <NotFound /> } />
                 </Routes>
             </Layout>
@@ -65,12 +61,7 @@ fn NotFound() -> impl IntoView {
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem;">
             <p style="font-size:3rem;color:var(--text-muted)">404</p>
             <p style="color:var(--text-secondary)">"Page non trouvée"</p>
-            <A href="/activite-deputes/home" class="btn">"Retour à l'accueil"</A>
+            <A href=crate::app_path!("/home") class="btn">"Retour à l'accueil"</A>
         </div>
-       // <div style="padding: 1rem;">
-         //   <h1>"404"</h1>
-           // <p>"pathname = " {move || loc.pathname.get()}</p>
-            //<p>"search = " {move || loc.search.get()}</p>
-        //</div>
     }
 }

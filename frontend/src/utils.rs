@@ -140,3 +140,10 @@ pub fn is_local_dev_host() -> bool {
 
     matches!(host.as_str(), "localhost" | "127.0.0.1" | "0.0.0.0" | "[::1]")
 }
+
+#[macro_export]
+macro_rules! app_path {
+    ($suffix:literal) => {
+        concat!("/activite-deputes", $suffix)
+    };
+}
