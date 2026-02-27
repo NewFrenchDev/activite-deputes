@@ -463,9 +463,8 @@ pub fn HomePage() -> impl IntoView {
                                     let nom_aria    = format!("Voir la fiche de {} {}", d.prenom, d.nom);
                                     view! {
                                         <tr>
-                                            <td class="td-nom" style="font-weight:500;white-space:nowrap;">
-                                                <A href=app_href(&format!("/depute/{id}"))
-                                                    attr:style="color:inherit;text-decoration:none;">
+                                            <td class="td-nom">
+                                                <A href=app_href(&format!("/depute/{id}"))>
                                                     {nom_display}
                                                 </A>
                                             </td>
