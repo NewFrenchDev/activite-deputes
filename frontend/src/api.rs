@@ -141,7 +141,21 @@ pub async fn fetch_deputes_v2() -> Result<Vec<DeputeInfo>, ApiError> {
 
         let code = resp.status() as u16;
         match code {
-            404 => break,
+            404 => {
+                // Si la première page est introuvable, on sort de la boucle
+                // et on renverra NotFound plus bas. Si au moins un chunk a
+                // déjà été récupéré, un 404 intermédiaire indique un chunk
+                // manquant (déploiement partiel / build incomplet) : on
+                // remonte alors une erreur plutôt que de retourner une liste tronquée.
+                if page == 1 && all.is_empty() {
+                    break;
+                } else {
+                    return Err(ApiError::ServerError(
+                        code,
+                        format!("Missing chunk deputes_p{}.json (HTTP 404)", page),
+                    ));
+                }
+            }
             code if code >= 500 => return Err(ApiError::ServerError(code, "HTTP error".to_string())),
             code if code >= 400 => return Err(ApiError::ServerError(code, format!("HTTP {}", code))),
             _ => {
