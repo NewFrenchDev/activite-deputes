@@ -269,7 +269,7 @@ pub fn HomePage() -> impl IntoView {
             }}
 
             // ── Filtres ──────────────────────────────────────────────────────
-            <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;margin-bottom:1rem;padding:0.85rem 1rem;background:var(--bg-secondary);border:1px solid var(--bg-border);border-radius:8px;">
+            <div class="home-filters" style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;margin-bottom:1rem;padding:0.85rem 1rem;background:var(--bg-secondary);border:1px solid var(--bg-border);border-radius:8px;">
                 <PeriodSelector period=period set_period=set_period />
                 <div style="flex:1;min-width:200px;max-width:320px;">
                     <input
@@ -324,7 +324,7 @@ pub fn HomePage() -> impl IntoView {
                 let period_label = period.get().label().to_string();
 
                 view! {
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0.75rem;margin-bottom:0.9rem;">
+                    <div class="home-top5-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0.75rem;margin-bottom:0.9rem;">
                         <div style="background:var(--bg-secondary);border:1px solid var(--bg-border);border-radius:8px;padding:0.85rem;">
                             <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.55rem;">
                                 <strong style="font-size:0.85rem;">"Top 5 participation"</strong>
@@ -482,9 +482,9 @@ pub fn HomePage() -> impl IntoView {
                                                     <td style="font-size:0.8rem;color:var(--warning);">{d.abst_count}</td>
                                                 </>
                                             }.into_view() } else { view! { <></> }.into_view() }}
-                                            <td style="font-variant-numeric:tabular-nums;">{d.amd_authored}</td>
-                                            <td style="font-variant-numeric:tabular-nums;color:var(--success);">{d.amd_adopted}</td>
-                                            <td style="font-size:0.8rem;color:var(--text-secondary);">
+                                            <td class="td-amd-authored" style="font-variant-numeric:tabular-nums;">{d.amd_authored}</td>
+                                            <td class="td-amd-adopted" style="font-variant-numeric:tabular-nums;color:var(--success);">{d.amd_adopted}</td>
+                                            <td class="td-amd-rate" style="font-size:0.8rem;color:var(--text-secondary);">
                                                 {adopt_rate.map(|r| fmt_pct(r)).unwrap_or_else(|| "—".to_string())}
                                             </td>
                                             {if show_det { view! {
