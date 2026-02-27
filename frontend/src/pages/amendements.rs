@@ -36,6 +36,14 @@ fn type_class(t: &str) -> &'static str {
     }
 }
 
+fn truncate_text(text: &str, max_chars: usize) -> String {
+    if text.chars().count() > max_chars {
+        format!("{}…", text.chars().take(max_chars).collect::<String>())
+    } else {
+        text.to_string()
+    }
+}
+
 fn day_summary(events: &[AmendementEvent]) -> (usize, usize, usize) {
     let evts = events.len();
     let mut amds: HashSet<&str> = HashSet::new();
@@ -516,11 +524,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                                         {grp.map(|g| view!{ <span class="badge" style="font-size:0.7rem;">{g}</span> })}
                                                     </div>
                                                     <div style="color:var(--text-secondary);font-size:0.84rem;line-height:1.4;">
-                                                        {if expose.chars().count() > 200 {
-                                                            format!("{}...", expose.chars().take(200).collect::<String>())
-                                                        } else {
-                                                            expose
-                                                        }}
+                                                        {truncate_text(&expose, 200)}
                                                     </div>
                                                 </div>
                                             }
@@ -682,11 +686,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                                     <td style="padding:.62rem .75rem;border-bottom:1px solid rgba(255,255,255,.06);font-size:.84rem;vertical-align:middle;max-width:320px;">
                                                         {match expose {
                                                             Some(ref txt) if !txt.is_empty() => {
-                                                                let display_txt = if txt.chars().count() > 200 {
-                                                                    format!("{}…", txt.chars().take(200).collect::<String>())
-                                                                } else {
-                                                                    txt.clone()
-                                                                };
+                                                                let display_txt = truncate_text(txt, 200);
                                                                 view!{
                                                                     <div style="color:var(--text-secondary);line-height:1.35;word-break:break-word;" title=txt.clone()>
                                                                         {display_txt}
