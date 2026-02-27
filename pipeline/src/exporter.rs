@@ -73,13 +73,17 @@ pub fn write_json(
         "telephones": d.telephones,
         "uri_hatvp": d.uri_hatvp,
     })).collect();
+    // Fichier unique pour compatibilité (stats_globales, anciens clients, etc.)
+    write_json_file(&data_dir.join("deputes.json"), &json!(deputes_base))?;
+
+    // Chunks paginés deputes_p1.json, deputes_p2.json, …
     const DEPUTES_CHUNK_SIZE: usize = 200;
     let chunk_count = (deputes_base.len() + DEPUTES_CHUNK_SIZE - 1) / DEPUTES_CHUNK_SIZE;
     for (i, chunk) in deputes_base.chunks(DEPUTES_CHUNK_SIZE).enumerate() {
         let filename = format!("deputes_p{}.json", i + 1);
         write_json_file(&data_dir.join(&filename), &json!(chunk))?;
     }
-    eprintln!("[exporter] deputes_p*.json → {} chunk(s) de {} (total: {} députés)", chunk_count, DEPUTES_CHUNK_SIZE, deputes_base.len());
+    eprintln!("[exporter] deputes.json + {} chunk(s) de {} (total: {} députés)", chunk_count, DEPUTES_CHUNK_SIZE, deputes_base.len());
 
     // positions-groupes / PPL (V1) — shards par groupe pour limiter la bande passante
     group_ppl_v1::write_group_ppl_json(&agg.deputes, &agg.dossiers, &data_dir, &now.to_rfc3339())?;
