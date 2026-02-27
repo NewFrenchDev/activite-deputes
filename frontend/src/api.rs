@@ -131,19 +131,35 @@ pub async fn fetch_stats_v2(period: Period) -> Result<Vec<DeputeStats>, ApiError
 }
 
 pub async fn fetch_deputes_v2() -> Result<Vec<DeputeInfo>, ApiError> {
-    let url = format!("{}/data/deputes.json", base_url());
-    let resp = Request::get(&url)
-        .send().await
-        .map_err(|e| ApiError::NetworkError(e.to_string()))?;
-    
-    let code = resp.status() as u16;
-    match code {
-        404 => Err(ApiError::NotFound("deputes.json".to_string())),
-        code if code >= 500 => Err(ApiError::ServerError(code, "HTTP error".to_string())),
-        code if code >= 400 => Err(ApiError::ServerError(code, format!("HTTP {}", code))),
-        _ => resp.json::<Vec<DeputeInfo>>()
-            .await
-            .map_err(|e| ApiError::ParseError(e.to_string()))
+    let mut all: Vec<DeputeInfo> = Vec::new();
+    let mut page = 1usize;
+    loop {
+        let url = format!("{}/data/deputes_p{}.json", base_url(), page);
+        let resp = Request::get(&url)
+            .send().await
+            .map_err(|e| ApiError::NetworkError(e.to_string()))?;
+
+        let code = resp.status() as u16;
+        match code {
+            404 => break,
+            code if code >= 500 => return Err(ApiError::ServerError(code, "HTTP error".to_string())),
+            code if code >= 400 => return Err(ApiError::ServerError(code, format!("HTTP {}", code))),
+            _ => {
+                let chunk = resp.json::<Vec<DeputeInfo>>()
+                    .await
+                    .map_err(|e| ApiError::ParseError(e.to_string()))?;
+                if chunk.is_empty() {
+                    break;
+                }
+                all.extend(chunk);
+                page += 1;
+            }
+        }
+    }
+    if all.is_empty() {
+        Err(ApiError::NotFound("deputes_p1.json".to_string()))
+    } else {
+        Ok(all)
     }
 }
 

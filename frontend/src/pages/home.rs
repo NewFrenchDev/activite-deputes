@@ -385,8 +385,8 @@ pub fn HomePage() -> impl IntoView {
             }}
 
             // ── Tableau ──────────────────────────────────────────────────────
-            <div style="overflow-x:auto;background:var(--bg-secondary);border:1px solid var(--bg-border);border-radius:8px;">
-                <table class="data-table" role="grid" aria-label="Tableau des députés et leur activité parlementaire">
+            <div class="deputies-table-wrap" style="overflow-x:auto;background:var(--bg-secondary);border:1px solid var(--bg-border);border-radius:8px;">
+                <table class="data-table deputies-table" role="grid" aria-label="Tableau des députés et leur activité parlementaire">
                     <thead>
                         <tr>
                             <SortTh label="Député"      field=SortField::Nom               sf=sort_field sd=sort_dir handle_sort=handle_sort />
@@ -459,12 +459,17 @@ pub fn HomePage() -> impl IntoView {
                                     let grp_title  = d.groupe_nom.clone().unwrap_or_default();
                                     let dept_label = d.dept.clone().unwrap_or_default();
                                     let show_det   = show_detail_cols.get();
+                                    let nom_display = format!("{} {}", d.prenom, d.nom);
+                                    let nom_aria    = format!("Voir la fiche de {} {}", d.prenom, d.nom);
                                     view! {
                                         <tr>
-                                            <td style="font-weight:500;white-space:nowrap;">
-                                                {format!("{} {}", d.prenom, d.nom)}
+                                            <td class="td-nom" style="font-weight:500;white-space:nowrap;">
+                                                <A href=app_href(&format!("/depute/{id}"))
+                                                    attr:style="color:inherit;text-decoration:none;">
+                                                    {nom_display}
+                                                </A>
                                             </td>
-                                            <td>
+                                            <td class="td-groupe">
                                                 {d.groupe_abrev.as_ref().map(|g| view! {
                                                     <span class="badge"
                                                         style=format!("border-color:{grp_color};color:{grp_color};")
@@ -473,7 +478,7 @@ pub fn HomePage() -> impl IntoView {
                                                     </span>
                                                 })}
                                             </td>
-                                            <td><RateBar rate=d.participation_rate /></td>
+                                            <td class="td-participation"><RateBar rate=d.participation_rate /></td>
                                             <td style="font-variant-numeric:tabular-nums;color:var(--text-secondary);font-size:0.8rem;">
                                                 {d.votes_exprimes}"/"{d.scrutins_eligibles}
                                             </td>
@@ -495,10 +500,10 @@ pub fn HomePage() -> impl IntoView {
                                                     {d.circo.as_ref().map(|c| format!(" #{c}"))}
                                                 </td>
                                             }.into_view() } else { view! { <></> }.into_view() }}
-                                            <td>
+                                            <td class="td-fiche">
                                                 <A href=app_href(&format!("/depute/{id}")) class="btn"
                                                     attr:style="padding:0.25rem 0.6rem;font-size:0.75rem;"
-                                                    attr:aria-label=format!("Voir la fiche de {} {}", d.prenom, d.nom)>
+                                                    attr:aria-label=nom_aria>
                                                     "→"
                                                 </A>
                                             </td>
