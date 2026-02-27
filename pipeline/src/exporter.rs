@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use serde_json::json;
 use std::path::Path;
 use csv::Writer;
+use tracing::info;
 
 use crate::aggregator::AllAggregates;
 use crate::downloader::EtagInfo;
@@ -146,6 +147,8 @@ fn write_period_csv(path: &Path, stats: &[DeputeStats]) -> Result<()> {
 
 fn write_json_file(path: &Path, value: &serde_json::Value) -> Result<()> {
     let json = serde_json::to_string(value)?;
+    let size_bytes = json.len();
     std::fs::write(path, json)?;
+    info!("{}: {} bytes", path.display(), size_bytes);
     Ok(())
 }

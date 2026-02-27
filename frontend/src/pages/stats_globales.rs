@@ -395,7 +395,7 @@ fn StatsGlobalesContent(summary: GlobalStatsPageSummary) -> impl IntoView {
                 .sg-seat-num{font-size:.7rem;color:#93a3c2;font-family:monospace;}
                 .sg-subtle{font-size:.72rem;color:#8ea0bf;line-height:1.45;}
                 @media (max-width: 980px){.sg-grid-2{grid-template-columns:1fr;}.sg-row3{grid-template-columns:58px 1fr 68px;}.sg-row3-wide{grid-template-columns:58px 1fr 70px;}}
-                @media (max-width: 640px){.sg-wrap{padding:.8rem;}.sg-kpis{grid-template-columns:repeat(auto-fit,minmax(132px,1fr));}.sg-grid-3{grid-template-columns:1fr;}.sg-donut-wrap{gap:.8rem;}.sg-donut-legend{min-width:0;width:100%;}.sg-seat-list{grid-template-columns:1fr;}.sg-prof-row{grid-template-columns:minmax(0,1fr) 90px 46px;}}
+                @media (max-width: 640px){.sg-wrap{padding:.8rem;}.sg-kpis{grid-template-columns:repeat(auto-fit,minmax(100px,1fr));}.sg-grid-3{grid-template-columns:1fr;}.sg-donut-wrap{gap:.8rem;flex-direction:column;}.sg-donut-legend{min-width:0;width:100%;}.sg-seat-list{grid-template-columns:1fr;}.sg-prof-row{grid-template-columns:minmax(0,1fr) 90px 46px;}}
                 @keyframes sg-grow-w { from{width:0;} to{width:var(--w);} }
                 @keyframes sg-grow-h { from{height:0;} to{height:var(--h);} }
                 @keyframes sg-flex-grow { from{flex-basis:0%;} to{flex-basis:var(--f);} }
