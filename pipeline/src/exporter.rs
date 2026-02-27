@@ -79,7 +79,7 @@ pub fn write_json(
         let filename = format!("deputes_p{}.json", i + 1);
         write_json_file(&data_dir.join(&filename), &json!(chunk))?;
     }
-    eprintln!("[exporter] deputes.json → {} chunk(s) de {} (total: {} députés)", chunk_count, DEPUTES_CHUNK_SIZE, deputes_base.len());
+    eprintln!("[exporter] deputes_p*.json → {} chunk(s) de {} (total: {} députés)", chunk_count, DEPUTES_CHUNK_SIZE, deputes_base.len());
 
     // positions-groupes / PPL (V1) — shards par groupe pour limiter la bande passante
     group_ppl_v1::write_group_ppl_json(&agg.deputes, &agg.dossiers, &data_dir, &now.to_rfc3339())?;
