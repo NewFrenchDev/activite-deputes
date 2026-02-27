@@ -21,6 +21,9 @@ impl AppStore {
         let stats_p30 = create_resource(|| (), |_| fetch_stats(Period::P30));
         let stats_p180 = create_resource(|| (), |_| fetch_stats(Period::P180));
 
+        // LEG préchargé au démarrage pour minimiser le temps de chargement
+        let stats_leg_resource = create_resource(|| (), |_| fetch_stats(Period::LEG));
+
         // Placeholder: ressource statique qui retourne une liste vide (créée une seule fois)
         // On l'utilise pour éviter de créer une Resource différente à chaque appel
         let stats_leg_placeholder: Resource<(), Result<Vec<DeputeStats>, String>> =
@@ -30,7 +33,7 @@ impl AppStore {
             status:     create_resource(|| (), |_| fetch_status()),
             stats_p30,
             stats_p180,
-            stats_leg:  RwSignal::new(None),
+            stats_leg:  RwSignal::new(Some(stats_leg_resource)),
             stats_leg_placeholder,
         }
     }

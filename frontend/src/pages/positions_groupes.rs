@@ -332,7 +332,6 @@ pub fn PositionsGroupesPage() -> impl IntoView {
                                                             set_selected_group_id.set(Some(value));
                                                         }
                                                     }
-                                                    prop:value=move || selected_group_id.get().unwrap_or_default()
                                                 >
                                                     {index_for_select.groups.iter().filter(|g| include_unknown.get() || g.group_id != "INCONNU").map(|g| {
                                                         let label = if g.group_id == "INCONNU" {
@@ -340,7 +339,9 @@ pub fn PositionsGroupesPage() -> impl IntoView {
                                                         } else {
                                                             format!("{} ({})", g.group_label, g.ppl_count)
                                                         };
-                                                        view! { <option value={g.group_id.clone()}>{label}</option> }
+                                                        let gid = g.group_id.clone();
+                                                        let gid_sel = g.group_id.clone();
+                                                        view! { <option value={gid} selected=move || selected_group_id.get().as_deref() == Some(gid_sel.as_str())>{label}</option> }
                                                     }).collect_view()}
                                                 </select>
                                             </div>
