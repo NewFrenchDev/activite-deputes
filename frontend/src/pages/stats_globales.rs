@@ -109,7 +109,7 @@ pub fn StatsGlobalesPage() -> impl IntoView {
                         }}
                     </div>
                     <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
-                        <A href=app_href("/") class="btn">"← Retour accueil"</A>
+                        <A href=app_href("/home") class="btn">"← Retour accueil"</A>
                         <A href=app_href("/methodologie") class="btn" attr:style="text-decoration:none;">"Méthode & sources"</A>
                     </div>
                 </div>
