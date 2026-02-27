@@ -424,8 +424,8 @@ pub fn AmendementsPage() -> impl IntoView {
                                         .unwrap_or_default();
                                     let dossier_title = e.did.as_deref().and_then(|id| dos_map.get(id)).cloned().unwrap_or_default();
                                     let hay = format!(
-                                        "{} {} {} {} {} {} {}", 
-                                        e.t, e.id, e.n.clone().unwrap_or_default(), dep_name, e.did.clone().unwrap_or_default(), dossier_title, e.s.clone().unwrap_or_default()
+                                        "{} {} {} {} {} {} {} {} {}", 
+                                        e.t, e.id, e.n.clone().unwrap_or_default(), dep_name, e.did.clone().unwrap_or_default(), dossier_title, e.s.clone().unwrap_or_default(), e.exp.clone().unwrap_or_default(), e.mis.clone().unwrap_or_default()
                                     );
                                     matches_search(&hay, &needle)
                                 })
@@ -516,8 +516,8 @@ pub fn AmendementsPage() -> impl IntoView {
                                                         {grp.map(|g| view!{ <span class="badge" style="font-size:0.7rem;">{g}</span> })}
                                                     </div>
                                                     <div style="color:var(--text-secondary);font-size:0.84rem;line-height:1.4;">
-                                                        {if expose.len() > 200 {
-                                                            format!("{}...", &expose[..200])
+                                                        {if expose.chars().count() > 200 {
+                                                            format!("{}...", expose.chars().take(200).collect::<String>())
                                                         } else {
                                                             expose
                                                         }}
@@ -551,7 +551,7 @@ pub fn AmendementsPage() -> impl IntoView {
                             </div>
 
                             <div class="amd-table-wrap" role="region" aria-label="Tableau évènements">
-                                <table style="border-collapse:collapse;width:100%;min-width:1020px;background:rgba(255,255,255,.02);">
+                                <table style="border-collapse:collapse;width:100%;min-width:1200px;background:rgba(255,255,255,.02);">
                                     <thead>
                                         <tr>
                                             <th style="position:sticky;top:0;background:rgba(31,41,55,.95);color:var(--text-secondary);font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:.65rem .75rem;text-align:left;border-bottom:1px solid var(--bg-border);white-space:nowrap;">"Type"</th>
@@ -560,6 +560,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                             <th style="position:sticky;top:0;background:rgba(31,41,55,.95);color:var(--text-secondary);font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:.65rem .75rem;text-align:left;border-bottom:1px solid var(--bg-border);white-space:nowrap;">"Dossier / Mission"</th>
                                             <th style="position:sticky;top:0;background:rgba(31,41,55,.95);color:var(--text-secondary);font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:.65rem .75rem;text-align:left;border-bottom:1px solid var(--bg-border);white-space:nowrap;">"Article"</th>
                                             <th style="position:sticky;top:0;background:rgba(31,41,55,.95);color:var(--text-secondary);font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:.65rem .75rem;text-align:left;border-bottom:1px solid var(--bg-border);white-space:nowrap;">"Sort"</th>
+                                            <th style="position:sticky;top:0;background:rgba(31,41,55,.95);color:var(--text-secondary);font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:.65rem .75rem;text-align:left;border-bottom:1px solid var(--bg-border);white-space:nowrap;">"Exposé sommaire"</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -586,6 +587,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                             let cosig_list = e.cos.clone();
                                             let auteur_type = e.aty.clone();
                                             let mission = e.mis.clone();
+                                            let expose = e.exp.clone();
 
                                             // Clone dep_map for use in the reactive closure
                                             let dep_map_clone = dep_map.clone();
@@ -676,6 +678,23 @@ pub fn AmendementsPage() -> impl IntoView {
                                                     </td>
                                                     <td style="padding:.62rem .75rem;border-bottom:1px solid rgba(255,255,255,.06);font-size:.86rem;vertical-align:middle;">
                                                         {sort_view}
+                                                    </td>
+                                                    <td style="padding:.62rem .75rem;border-bottom:1px solid rgba(255,255,255,.06);font-size:.84rem;vertical-align:middle;max-width:320px;">
+                                                        {match expose {
+                                                            Some(ref txt) if !txt.is_empty() => {
+                                                                let display_txt = if txt.chars().count() > 200 {
+                                                                    format!("{}…", txt.chars().take(200).collect::<String>())
+                                                                } else {
+                                                                    txt.clone()
+                                                                };
+                                                                view!{
+                                                                    <div style="color:var(--text-secondary);line-height:1.35;word-break:break-word;" title=txt.clone()>
+                                                                        {display_txt}
+                                                                    </div>
+                                                                }.into_view()
+                                                            }
+                                                            _ => view!{ <span style="color:var(--text-muted);">"—"</span> }.into_view(),
+                                                        }}
                                                     </td>
                                                 </tr>
                                             }
