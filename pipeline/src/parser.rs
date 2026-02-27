@@ -888,11 +888,17 @@ fn parse_amendement(v: &serde_json::Value) -> Option<Amendement> {
     cosignataires_ids.sort();
     cosignataires_ids.dedup();
 
-    // Date : chaîne de fallback étendue — le dataset AN est très irrégulier sur ce point
-    let date = v["cycleDeVie"]["dateDepot"].as_str().and_then(parse_date)
-        .or_else(|| v["cycleDeVie"]["dateCirculation"].as_str().and_then(parse_date))
-        .or_else(|| v["cycleDeVie"]["dateSort"].as_str().and_then(parse_date))
-        .or_else(|| v["cycleDeVie"]["dateExamen"].as_str().and_then(parse_date))
+    // Dates structurées (si présentes)
+    let date_depot = v["cycleDeVie"]["dateDepot"].as_str().and_then(parse_date);
+    let date_circulation = v["cycleDeVie"]["dateCirculation"].as_str().and_then(parse_date);
+    let date_sort = v["cycleDeVie"]["dateSort"].as_str().and_then(parse_date);
+    let date_examen = v["cycleDeVie"]["dateExamen"].as_str().and_then(parse_date);
+
+    // Date best-effort : chaîne de fallback étendue — le dataset AN est très irrégulier sur ce point
+    let date = date_depot
+        .or(date_circulation)
+        .or(date_sort)
+        .or(date_examen)
         .or_else(|| {
             // Fallback: chercher n'importe quelle date dans cycleDeVie
             if let Some(obj) = v["cycleDeVie"].as_object() {
@@ -919,6 +925,10 @@ fn parse_amendement(v: &serde_json::Value) -> Option<Amendement> {
         cosignataires_ids,
         sort: sort_val,
         date,
+        date_depot,
+        date_circulation,
+        date_examen,
+        date_sort,
         dossier_ref,
         article,
         texte_ref,

@@ -12,6 +12,8 @@ pub struct AllAggregates {
     pub leg: Vec<DeputeStats>,
     pub deputes: Vec<Depute>,
     pub dossiers: HashMap<String, Dossier>,
+    /// Amendements normalisés (utilisés pour exporter des vues "jour par jour").
+    pub amendements: Vec<Amendement>,
 }
 
 // Début de la 17e législature
@@ -117,6 +119,7 @@ pub fn compute_all(raw: &RawDataset, now: DateTime<Utc>) -> Result<AllAggregates
         leg,
         deputes: raw.deputes.clone(),
         dossiers: raw.dossiers.clone(),
+        amendements: raw.amendements.clone(),
     })
 }
 

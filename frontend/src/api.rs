@@ -267,6 +267,98 @@ pub async fn fetch_deputy_ppl_shard_v2(deputy_id: &str) -> Result<Option<DeputyP
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Amendements — calendrier (shards par mois)
+// ─────────────────────────────────────────────────────────────────────────────
+
+pub async fn fetch_amendements_index_v2() -> Result<AmendementsIndex, ApiError> {
+    let url = format!("{}/data/amendements/index.json", base_url());
+    let resp = Request::get(&url)
+        .send().await
+        .map_err(|e| ApiError::NetworkError(e.to_string()))?;
+
+    let code = resp.status() as u16;
+    match code {
+        404 => Err(ApiError::NotFound("amendements/index.json".to_string())),
+        code if code >= 500 => Err(ApiError::ServerError(code, "HTTP error".to_string())),
+        code if code >= 400 => Err(ApiError::ServerError(code, format!("HTTP {}", code))),
+        _ if is_spa_fallback(&resp) => Err(ApiError::NotFound("amendements/index.json".to_string())),
+        _ => resp
+            .json::<AmendementsIndex>()
+            .await
+            .map_err(|e| ApiError::ParseError(e.to_string())),
+    }
+}
+
+
+/// Accepts a month key in `YYYY-MM` format and returns a normalized version.
+/// This avoids path traversal and rejects invalid months.
+fn sanitize_month_key(month: &str) -> Option<String> {
+    let s = month.trim();
+    if s.len() != 7 {
+        return None;
+    }
+    let b = s.as_bytes();
+    if !b[0].is_ascii_digit()
+        || !b[1].is_ascii_digit()
+        || !b[2].is_ascii_digit()
+        || !b[3].is_ascii_digit()
+        || b[4] != b'-'
+        || !b[5].is_ascii_digit()
+        || !b[6].is_ascii_digit()
+    {
+        return None;
+    }
+
+    let year: i32 = s[0..4].parse().ok()?;
+    let month_num: u32 = s[5..7].parse().ok()?;
+    if !(1..=12).contains(&month_num) {
+        return None;
+    }
+
+    // Keep year as-is, just normalize zero-padding
+    Some(format!("{:04}-{:02}", year, month_num))
+}
+
+pub async fn fetch_amendements_month_v2(month: &str) -> Result<AmendementsMonthFile, ApiError> {
+    let clean = sanitize_month_key(month).ok_or_else(|| ApiError::Other(format!("Mois invalide: {month}")))?;
+    let url = format!("{}/data/amendements/months/{}.json", base_url(), clean);
+    let resp = Request::get(&url)
+        .send().await
+        .map_err(|e| ApiError::NetworkError(e.to_string()))?;
+
+    let code = resp.status() as u16;
+    match code {
+        404 => Err(ApiError::NotFound(format!("amendements/months/{clean}.json"))),
+        code if code >= 500 => Err(ApiError::ServerError(code, "HTTP error".to_string())),
+        code if code >= 400 => Err(ApiError::ServerError(code, format!("HTTP {}", code))),
+        _ if is_spa_fallback(&resp) => Err(ApiError::NotFound(format!("amendements/months/{clean}.json"))),
+        _ => resp
+            .json::<AmendementsMonthFile>()
+            .await
+            .map_err(|e| ApiError::ParseError(e.to_string())),
+    }
+}
+
+pub async fn fetch_dossiers_min_v2() -> Result<DossiersMin, ApiError> {
+    let url = format!("{}/data/dossiers_min.json", base_url());
+    let resp = Request::get(&url)
+        .send().await
+        .map_err(|e| ApiError::NetworkError(e.to_string()))?;
+
+    let code = resp.status() as u16;
+    match code {
+        404 => Err(ApiError::NotFound("dossiers_min.json".to_string())),
+        code if code >= 500 => Err(ApiError::ServerError(code, "HTTP error".to_string())),
+        code if code >= 400 => Err(ApiError::ServerError(code, format!("HTTP {}", code))),
+        _ if is_spa_fallback(&resp) => Err(ApiError::NotFound("dossiers_min.json".to_string())),
+        _ => resp
+            .json::<DossiersMin>()
+            .await
+            .map_err(|e| ApiError::ParseError(e.to_string())),
+    }
+}
+
 // ============= ANCIENNES FONCTIONS (pour compatibilité) =============
 // Ces fonctions appellent les v2 et convertissent ApiError en String
 // Aucun code existant ne doit changer
@@ -293,6 +385,18 @@ pub async fn fetch_group_ppl_group_shard(rel_file: &str) -> Result<GroupPplGroup
 
 pub async fn fetch_deputy_ppl_shard(deputy_id: &str) -> Result<Option<DeputyPplShard>, String> {
     fetch_deputy_ppl_shard_v2(deputy_id).await.map_err(|e| e.to_string())
+}
+
+pub async fn fetch_amendements_index() -> Result<AmendementsIndex, String> {
+    fetch_amendements_index_v2().await.map_err(|e| e.to_string())
+}
+
+pub async fn fetch_amendements_month(month: &str) -> Result<AmendementsMonthFile, String> {
+    fetch_amendements_month_v2(month).await.map_err(|e| e.to_string())
+}
+
+pub async fn fetch_dossiers_min() -> Result<DossiersMin, String> {
+    fetch_dossiers_min_v2().await.map_err(|e| e.to_string())
 }
 
 fn safe_file_stem_client(raw: &str) -> String {

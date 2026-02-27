@@ -11,6 +11,7 @@ use wasm_bindgen::prelude::*;
 
 use components::layout::Layout;
 use pages::{
+    amendements::AmendementsPage,
     comparer::ComparerPage, depute::DeputePage, exporter::ExportPage, home::HomePage,
     methodologie::MethodePage, positions_groupes::PositionsGroupesPage, reseau::ReseauPage,
     stats_globales::StatsGlobalesPage,
@@ -40,6 +41,7 @@ fn App() -> impl IntoView {
                     <Route path=crate::app_path!("/comparer") view=ComparerPage />
                     <Route path=crate::app_path!("/exporter") view=ExportPage />
                     <Route path=crate::app_path!("/stats-globales") view=StatsGlobalesPage />
+                    <Route path=crate::app_path!("/amendements") view=AmendementsPage />
                     <Route path=crate::app_path!("/reseau") view=ReseauPage />
                     <Route path=crate::app_path!("/positions-groupes") view=PositionsGroupesPage />
                     <Route path=crate::app_path!("/methodologie") view=MethodePage />

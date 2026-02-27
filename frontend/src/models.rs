@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use chrono::NaiveDate;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Status {
@@ -125,6 +126,64 @@ pub struct DeputeStats {
     #[serde(default)]
     pub cosign_network: Option<CosignNetworkStats>,
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Amendements — calendrier (shards par mois)
+// ─────────────────────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct AmendementsIndex {
+    pub schema_version: u32,
+    pub generated_at: String,
+    pub months: Vec<AmendementsMonthMeta>,
+    pub undated_count: usize,
+    pub undated_file: String,
+    #[serde(default)]
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct AmendementsMonthMeta {
+    pub month: String,
+    pub days: usize,
+    pub events: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct AmendementsMonthFile {
+    pub schema_version: u32,
+    pub month: String,
+    /// days[YYYY-MM-DD] = [events...]
+    pub days: HashMap<String, Vec<AmendementEvent>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct AmendementEvent {
+    /// Type: DEPOT | CIRCULATION | EXAMEN | SORT
+    pub t: String,
+    /// ID amendement
+    pub id: String,
+    /// Numéro
+    #[serde(default)]
+    pub n: Option<String>,
+    /// Auteur ID (député)
+    #[serde(default)]
+    pub aid: Option<String>,
+    /// Dossier ID
+    #[serde(default)]
+    pub did: Option<String>,
+    /// Article (ex: "Art. 3")
+    #[serde(default)]
+    pub art: Option<String>,
+    /// Sort (uniquement pour t=SORT)
+    #[serde(default)]
+    pub s: Option<String>,
+    /// Adopté (uniquement pour t=SORT)
+    #[serde(default)]
+    pub ok: bool,
+}
+
+pub type DossiersMin = HashMap<String, String>;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct DossierScore {

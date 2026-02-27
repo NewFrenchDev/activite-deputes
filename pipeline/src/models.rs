@@ -134,7 +134,17 @@ pub struct Amendement {
     pub auteur_id: Option<String>,
     pub cosignataires_ids: Vec<String>,
     pub sort: Option<String>,
+    /// Date best-effort (fallback) utilisée par les agrégats existants.
     pub date: Option<NaiveDate>,
+    /// Dates structurées (si présentes) — utiles pour une timeline complète.
+    #[serde(default)]
+    pub date_depot: Option<NaiveDate>,
+    #[serde(default)]
+    pub date_circulation: Option<NaiveDate>,
+    #[serde(default)]
+    pub date_examen: Option<NaiveDate>,
+    #[serde(default)]
+    pub date_sort: Option<NaiveDate>,
     pub dossier_ref: Option<String>,
     pub article: Option<String>,
     pub texte_ref: Option<String>,

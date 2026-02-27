@@ -66,6 +66,7 @@ pub fn Layout(children: Children) -> impl IntoView {
                             <NavLink path=crate::app_path!("/comparer") label="Comparer" />
                             <NavLink path=crate::app_path!("/exporter") label="Exporter" />
                             <NavLink path=crate::app_path!("/stats-globales") label="Stats globales" />
+                            <NavLink path=crate::app_path!("/amendements") label="Amendements" />
                             <NavLink path=crate::app_path!("/reseau") label="Réseau" />
                             <NavLink path=crate::app_path!("/positions-groupes") label="Positions groupes" />
                             <NavLink path=crate::app_path!("/methodologie") label="Méthode & Sources" />
@@ -100,6 +101,7 @@ pub fn Layout(children: Children) -> impl IntoView {
                         <NavLink path=crate::app_path!("/comparer") label="Comparer" />
                         <NavLink path=crate::app_path!("/exporter") label="Exporter" />
                         <NavLink path=crate::app_path!("/stats-globales") label="Stats globales" />
+                        <NavLink path=crate::app_path!("/amendements") label="Amendements" />
                         <NavLink path=crate::app_path!("/reseau") label="Réseau" />
                         <NavLink path=crate::app_path!("/positions-groupes") label="Positions groupes" />
                         <NavLink path=crate::app_path!("/methodologie") label="Méthode & Sources" />

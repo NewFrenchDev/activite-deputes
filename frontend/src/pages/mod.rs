@@ -9,3 +9,5 @@ pub mod stats_globales;
 pub mod reseau;
 
 pub mod positions_groupes;
+
+pub mod amendements;
