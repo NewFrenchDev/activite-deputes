@@ -94,6 +94,16 @@ pub fn inferred_github_repo_urls() -> Option<(String, String)> {
     Some((repo_url, issue_url))
 }
 
+/// Détecte si la réponse est un fallback SPA (HTML au lieu de JSON).
+/// Cela se produit quand trunk serve ou GitHub Pages renvoie index.html
+/// avec un status 200 pour un fichier inexistant.
+fn is_spa_fallback(resp: &gloo_net::http::Response) -> bool {
+    resp.headers()
+        .get("content-type")
+        .map(|ct| ct.contains("text/html"))
+        .unwrap_or(false)
+}
+
 // ============= NOUVELLES FONCTIONS V2 (avec ApiError) =============
 
 pub async fn fetch_status_v2() -> Result<Status, ApiError> {
@@ -107,6 +117,7 @@ pub async fn fetch_status_v2() -> Result<Status, ApiError> {
         404 => Err(ApiError::NotFound("status.json".to_string())),
         code if code >= 500 => Err(ApiError::ServerError(code, "HTTP error".to_string())),
         code if code >= 400 => Err(ApiError::ServerError(code, format!("HTTP {}", code))),
+        _ if is_spa_fallback(&resp) => Err(ApiError::NotFound("status.json".to_string())),
         _ => resp.json::<Status>()
             .await
             .map_err(|e| ApiError::ParseError(e.to_string()))
@@ -124,6 +135,7 @@ pub async fn fetch_stats_v2(period: Period) -> Result<Vec<DeputeStats>, ApiError
         404 => Err(ApiError::NotFound(period.json_file().to_string())),
         code if code >= 500 => Err(ApiError::ServerError(code, "HTTP error".to_string())),
         code if code >= 400 => Err(ApiError::ServerError(code, format!("HTTP {}", code))),
+        _ if is_spa_fallback(&resp) => Err(ApiError::NotFound(period.json_file().to_string())),
         _ => resp.json::<Vec<DeputeStats>>()
             .await
             .map_err(|e| ApiError::ParseError(e.to_string()))
@@ -147,6 +159,10 @@ pub async fn fetch_deputes_v2() -> Result<Vec<DeputeInfo>, ApiError> {
             code if code >= 500 => return Err(ApiError::ServerError(code, "HTTP error".to_string())),
             code if code >= 400 => return Err(ApiError::ServerError(code, format!("HTTP {}", code))),
             _ => {
+                if is_spa_fallback(&resp) {
+                    // SPA fallback (HTML au lieu de JSON) : chunked format indisponible
+                    break;
+                }
                 match resp.json::<Vec<DeputeInfo>>().await {
                     Ok(chunk) => {
                         if chunk.is_empty() {
@@ -182,6 +198,7 @@ pub async fn fetch_deputes_v2() -> Result<Vec<DeputeInfo>, ApiError> {
         404 => Err(ApiError::NotFound("deputes.json".to_string())),
         code if code >= 500 => Err(ApiError::ServerError(code, "HTTP error".to_string())),
         code if code >= 400 => Err(ApiError::ServerError(code, format!("HTTP {}", code))),
+        _ if is_spa_fallback(&resp) => Err(ApiError::NotFound("deputes.json".to_string())),
         _ => resp.json::<Vec<DeputeInfo>>()
             .await
             .map_err(|e| ApiError::ParseError(e.to_string()))
@@ -199,6 +216,7 @@ pub async fn fetch_group_ppl_index_v2() -> Result<GroupPplIndex, ApiError> {
         404 => Err(ApiError::NotFound("positions-groupes/ppl/index.json".to_string())),
         code if code >= 500 => Err(ApiError::ServerError(code, "HTTP error".to_string())),
         code if code >= 400 => Err(ApiError::ServerError(code, format!("HTTP {}", code))),
+        _ if is_spa_fallback(&resp) => Err(ApiError::NotFound("positions-groupes/ppl/index.json".to_string())),
         _ => resp.json::<GroupPplIndex>()
             .await
             .map_err(|e| ApiError::ParseError(e.to_string()))
@@ -219,6 +237,7 @@ pub async fn fetch_group_ppl_group_shard_v2(rel_file: &str) -> Result<GroupPplGr
         404 => Err(ApiError::NotFound(format!("positions-groupes/ppl/{}", clean))),
         code if code >= 500 => Err(ApiError::ServerError(code, "HTTP error".to_string())),
         code if code >= 400 => Err(ApiError::ServerError(code, format!("HTTP {}", code))),
+        _ if is_spa_fallback(&resp) => Err(ApiError::NotFound(format!("positions-groupes/ppl/{}", clean))),
         _ => resp.json::<GroupPplGroupShard>()
             .await
             .map_err(|e| ApiError::ParseError(e.to_string()))
@@ -240,6 +259,7 @@ pub async fn fetch_deputy_ppl_shard_v2(deputy_id: &str) -> Result<Option<DeputyP
         404 => Ok(None),  // 404 = ok, juste pas de données
         code if code >= 500 => Err(ApiError::ServerError(code, "HTTP error".to_string())),
         code if code >= 400 => Err(ApiError::ServerError(code, format!("HTTP {}", code))),
+        _ if is_spa_fallback(&resp) => Ok(None),  // SPA fallback = pas de données
         _ => resp.json::<DeputyPplShard>()
             .await
             .map_err(|e| ApiError::ParseError(e.to_string()))
