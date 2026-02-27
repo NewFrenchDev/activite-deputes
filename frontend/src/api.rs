@@ -147,14 +147,23 @@ pub async fn fetch_deputes_v2() -> Result<Vec<DeputeInfo>, ApiError> {
             code if code >= 500 => return Err(ApiError::ServerError(code, "HTTP error".to_string())),
             code if code >= 400 => return Err(ApiError::ServerError(code, format!("HTTP {}", code))),
             _ => {
-                let chunk = resp.json::<Vec<DeputeInfo>>()
-                    .await
-                    .map_err(|e| ApiError::ParseError(e.to_string()))?;
-                if chunk.is_empty() {
-                    break;
+                match resp.json::<Vec<DeputeInfo>>().await {
+                    Ok(chunk) => {
+                        if chunk.is_empty() {
+                            break;
+                        }
+                        all.extend(chunk);
+                        page += 1;
+                    }
+                    Err(_) if page == 1 => {
+                        // First chunk parse failed (likely HTML from SPA fallback);
+                        // chunked format unavailable, fall through to single-file.
+                        break;
+                    }
+                    Err(e) => {
+                        return Err(ApiError::ParseError(e.to_string()));
+                    }
                 }
-                all.extend(chunk);
-                page += 1;
             }
         }
     }

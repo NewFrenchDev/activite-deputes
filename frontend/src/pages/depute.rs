@@ -576,9 +576,9 @@ pub fn DeputePage() -> impl IntoView {
                                                     <div style=format!("width:{abst_pct:.1}%;background:var(--warning);")></div>
                                                 </div>
                                                 <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:0.78rem;">
-                                                    <span>"■ Pour : "{format!("{:.1}%", pour_pct)}</span>
-                                                    <span>"■ Contre : "{format!("{:.1}%", contre_pct)}</span>
-                                                    <span>"■ Abstention : "{format!("{:.1}%", abst_pct)}</span>
+                                                    <span><span style="color:var(--success);">"■"</span>" Pour : "{format!("{:.1}%", pour_pct)}</span>
+                                                    <span><span style="color:var(--danger);">"■"</span>" Contre : "{format!("{:.1}%", contre_pct)}</span>
+                                                    <span><span style="color:var(--warning);">"■"</span>" Abstention : "{format!("{:.1}%", abst_pct)}</span>
                                                 </div>
                                             }.into_view()
                                         } else {
