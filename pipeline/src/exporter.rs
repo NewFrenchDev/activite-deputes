@@ -42,7 +42,7 @@ pub fn write_json(
     write_json_file(&data_dir.join("deputes_P180.json"), &json!(agg.p180))?;
     write_json_file(&data_dir.join("deputes_LEG.json"), &json!(agg.leg))?;
 
-    // deputes.json — info de base pour le listing
+    // deputes_pN.json — info de base pour le listing, découpée en chunks de 200
     let deputes_base: Vec<serde_json::Value> = agg.deputes.iter().map(|d| json!({
         "id": d.id,
         "nom": d.nom,
@@ -73,7 +73,13 @@ pub fn write_json(
         "telephones": d.telephones,
         "uri_hatvp": d.uri_hatvp,
     })).collect();
-    write_json_file(&data_dir.join("deputes.json"), &json!(deputes_base))?;
+    const DEPUTES_CHUNK_SIZE: usize = 200;
+    let chunk_count = (deputes_base.len() + DEPUTES_CHUNK_SIZE - 1) / DEPUTES_CHUNK_SIZE;
+    for (i, chunk) in deputes_base.chunks(DEPUTES_CHUNK_SIZE).enumerate() {
+        let filename = format!("deputes_p{}.json", i + 1);
+        write_json_file(&data_dir.join(&filename), &json!(chunk))?;
+    }
+    eprintln!("[exporter] deputes_p*.json → {} chunk(s) de {} (total: {} députés)", chunk_count, DEPUTES_CHUNK_SIZE, deputes_base.len());
 
     // positions-groupes / PPL (V1) — shards par groupe pour limiter la bande passante
     group_ppl_v1::write_group_ppl_json(&agg.deputes, &agg.dossiers, &data_dir, &now.to_rfc3339())?;
@@ -146,6 +152,8 @@ fn write_period_csv(path: &Path, stats: &[DeputeStats]) -> Result<()> {
 
 fn write_json_file(path: &Path, value: &serde_json::Value) -> Result<()> {
     let json = serde_json::to_string(value)?;
+    let size_bytes = json.len();
     std::fs::write(path, json)?;
+    eprintln!("[exporter] {} ({:.1} KB)", path.file_name().unwrap_or_default().to_string_lossy(), size_bytes as f64 / 1024.0);
     Ok(())
 }
