@@ -132,6 +132,8 @@ pub struct Amendement {
     pub id: String,
     pub numero: Option<String>,
     pub auteur_id: Option<String>,
+    #[serde(default)]
+    pub auteur_type: Option<String>,
     pub cosignataires_ids: Vec<String>,
     pub sort: Option<String>,
     /// Date best-effort (fallback) utilisée par les agrégats existants.
@@ -149,6 +151,10 @@ pub struct Amendement {
     pub article: Option<String>,
     pub texte_ref: Option<String>,
     pub adopte: bool,
+    #[serde(default)]
+    pub mission_visee: Option<String>,
+    #[serde(default)]
+    pub expose_sommaire: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

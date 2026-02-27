@@ -111,6 +111,12 @@ struct AmdEvent {
     /// ID auteur (député)
     #[serde(skip_serializing_if = "Option::is_none")]
     aid: Option<String>,
+    /// Type d'auteur (Député, Groupe, etc.)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    aty: Option<String>,
+    /// Cosignataires IDs
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    cos: Vec<String>,
     /// ID dossier
     #[serde(skip_serializing_if = "Option::is_none")]
     did: Option<String>,
@@ -123,6 +129,12 @@ struct AmdEvent {
     /// true si adopté (uniquement utile pour t=SORT)
     #[serde(default)]
     ok: bool,
+    /// Mission visée
+    #[serde(skip_serializing_if = "Option::is_none")]
+    mis: Option<String>,
+    /// Exposé sommaire
+    #[serde(skip_serializing_if = "Option::is_none")]
+    exp: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -187,10 +199,14 @@ fn write_amendements_calendar_json(data_dir: &Path, agg: &AllAggregates, generat
                 id: a.id.clone(),
                 n: a.numero.clone(),
                 aid: a.auteur_id.clone(),
+                aty: a.auteur_type.clone(),
+                cos: a.cosignataires_ids.clone(),
                 did: a.dossier_ref.clone(),
                 art: a.article.clone(),
                 s: None,
                 ok: false,
+                mis: a.mission_visee.clone(),
+                exp: a.expose_sommaire.clone(),
             }));
         }
 
@@ -202,10 +218,14 @@ fn write_amendements_calendar_json(data_dir: &Path, agg: &AllAggregates, generat
                 id: a.id.clone(),
                 n: a.numero.clone(),
                 aid: a.auteur_id.clone(),
+                aty: a.auteur_type.clone(),
+                cos: a.cosignataires_ids.clone(),
                 did: a.dossier_ref.clone(),
                 art: a.article.clone(),
                 s: None,
                 ok: false,
+                mis: a.mission_visee.clone(),
+                exp: a.expose_sommaire.clone(),
             }));
         }
 
@@ -217,10 +237,14 @@ fn write_amendements_calendar_json(data_dir: &Path, agg: &AllAggregates, generat
                 id: a.id.clone(),
                 n: a.numero.clone(),
                 aid: a.auteur_id.clone(),
+                aty: a.auteur_type.clone(),
+                cos: a.cosignataires_ids.clone(),
                 did: a.dossier_ref.clone(),
                 art: a.article.clone(),
                 s: None,
                 ok: false,
+                mis: a.mission_visee.clone(),
+                exp: a.expose_sommaire.clone(),
             }));
         }
 
@@ -232,10 +256,14 @@ fn write_amendements_calendar_json(data_dir: &Path, agg: &AllAggregates, generat
                 id: a.id.clone(),
                 n: a.numero.clone(),
                 aid: a.auteur_id.clone(),
+                aty: a.auteur_type.clone(),
+                cos: a.cosignataires_ids.clone(),
                 did: a.dossier_ref.clone(),
                 art: a.article.clone(),
                 s: a.sort.clone(),
                 ok: a.adopte,
+                mis: a.mission_visee.clone(),
+                exp: a.expose_sommaire.clone(),
             }));
         }
 
@@ -244,10 +272,14 @@ fn write_amendements_calendar_json(data_dir: &Path, agg: &AllAggregates, generat
                 "id": a.id,
                 "n": a.numero,
                 "aid": a.auteur_id,
+                "aty": a.auteur_type,
+                "cos": a.cosignataires_ids,
                 "did": a.dossier_ref,
                 "art": a.article,
                 "s": a.sort,
                 "ok": a.adopte,
+                "mis": a.mission_visee,
+                "exp": a.expose_sommaire,
             }));
         }
     }
