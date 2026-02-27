@@ -854,6 +854,11 @@ fn parse_amendement(v: &serde_json::Value) -> Option<Amendement> {
         .or_else(|| v["signataires"]["signataire"]["acteurRef"].as_str())
         .map(String::from);
 
+    // typeAuteur (ex: "Député", "Groupe")
+    let auteur_type = v["signataires"]["auteur"]["typeAuteur"].as_str()
+        .or_else(|| v["signataires"]["signataire"]["typeAuteur"].as_str())
+        .map(String::from);
+
     // cosignataires (schéma 17e législature observé):
     // signataires.cosignataires.acteurRef = "PA..." | ["PA...", ...]
     // + fallback historique: signataires.cosignataires.cosignataire[].acteurRef
@@ -918,10 +923,17 @@ fn parse_amendement(v: &serde_json::Value) -> Option<Amendement> {
     let article = v["pointeurFragmentTexte"]["division"]["titre"].as_str().map(String::from);
     let texte_ref = v["pointeurFragmentTexte"]["texteLegislatifRef"].as_str().map(String::from);
 
+    // Mission visée
+    let mission_visee = v["pointeurFragmentTexte"]["missionVisee"]["libelleMission"].as_str().map(String::from);
+
+    // Exposé sommaire
+    let expose_sommaire = v["exposeSommaire"].as_str().map(String::from);
+
     Some(Amendement {
         id,
         numero,
         auteur_id,
+        auteur_type,
         cosignataires_ids,
         sort: sort_val,
         date,
@@ -933,6 +945,8 @@ fn parse_amendement(v: &serde_json::Value) -> Option<Amendement> {
         article,
         texte_ref,
         adopte,
+        mission_visee,
+        expose_sommaire,
     })
 }
 

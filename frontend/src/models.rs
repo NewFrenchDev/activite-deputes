@@ -169,6 +169,12 @@ pub struct AmendementEvent {
     /// Auteur ID (député)
     #[serde(default)]
     pub aid: Option<String>,
+    /// Type d'auteur (Député, Groupe, etc.)
+    #[serde(default)]
+    pub aty: Option<String>,
+    /// Cosignataires IDs (list of deputy IDs)
+    #[serde(default)]
+    pub cos: Vec<String>,
     /// Dossier ID
     #[serde(default)]
     pub did: Option<String>,
@@ -181,6 +187,12 @@ pub struct AmendementEvent {
     /// Adopté (uniquement pour t=SORT)
     #[serde(default)]
     pub ok: bool,
+    /// Mission visée
+    #[serde(default)]
+    pub mis: Option<String>,
+    /// Exposé sommaire
+    #[serde(default)]
+    pub exp: Option<String>,
 }
 
 pub type DossiersMin = HashMap<String, String>;
