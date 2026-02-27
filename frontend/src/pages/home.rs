@@ -336,7 +336,7 @@ pub fn HomePage() -> impl IntoView {
                                     let nom = format!("{} {}", d.prenom, d.nom);
                                     let grp = d.groupe_abrev.clone().unwrap_or_else(|| "—".to_string());
                                     view! {
-                                        <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px auto;gap:0.5rem;align-items:center;">
+                                        <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0.5rem;align-items:center;">
                                             <div style="min-width:0;">
                                                 <A href=app_href(&format!("/depute/{id}")) attr:style="color:var(--text-primary);text-decoration:none;font-size:0.8rem;font-weight:500;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                                                     {nom}
@@ -344,9 +344,6 @@ pub fn HomePage() -> impl IntoView {
                                                 <span style="font-size:0.68rem;color:var(--text-muted);">{grp}</span>
                                             </div>
                                             <div><RateBar rate=d.participation_rate /></div>
-                                            <span style="font-size:0.75rem;color:var(--text-secondary);font-variant-numeric:tabular-nums;">
-                                                {fmt_pct(d.participation_rate)}
-                                            </span>
                                         </div>
                                     }
                                 }).collect_view()}
@@ -364,7 +361,7 @@ pub fn HomePage() -> impl IntoView {
                                     let nom = format!("{} {}", d.prenom, d.nom);
                                     let grp = d.groupe_abrev.clone().unwrap_or_else(|| "—".to_string());
                                     view! {
-                                        <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px auto;gap:0.5rem;align-items:center;">
+                                        <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0.5rem;align-items:center;">
                                             <div style="min-width:0;">
                                                 <A href=app_href(&format!("/depute/{id}")) attr:style="color:var(--text-primary);text-decoration:none;font-size:0.8rem;font-weight:500;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                                                     {nom}
@@ -372,9 +369,6 @@ pub fn HomePage() -> impl IntoView {
                                                 <span style="font-size:0.68rem;color:var(--text-muted);">{grp}</span>
                                             </div>
                                             <div><RateBar rate=d.participation_rate /></div>
-                                            <span style="font-size:0.75rem;color:var(--text-secondary);font-variant-numeric:tabular-nums;">
-                                                {fmt_pct(d.participation_rate)}
-                                            </span>
                                         </div>
                                     }
                                 }).collect_view()}

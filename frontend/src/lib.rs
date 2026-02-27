@@ -35,6 +35,7 @@ fn App() -> impl IntoView {
             <Layout>
                 <Routes>
                     <Route path=crate::app_path!("/home") view=HomePage />
+                    <Route path="/" view=HomePage />
                     <Route path=crate::app_path!("/depute/:id") view=DeputePage />
                     <Route path=crate::app_path!("/comparer") view=ComparerPage />
                     <Route path=crate::app_path!("/exporter") view=ExportPage />
