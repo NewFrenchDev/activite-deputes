@@ -206,7 +206,7 @@ pub fn AmendementsPage() -> impl IntoView {
     let (selected_month, set_selected_month) = create_signal::<Option<String>>(None);
     let (selected_day, set_selected_day) = create_signal::<Option<String>>(None);
     let (filter, set_filter) = create_signal(String::new());
-    let (type_filter, set_type_filter) = create_signal(String::new()); // "", "DEPOT", "EXAMEN", "SORT"
+    let (type_filter, set_type_filter) = create_signal(String::new()); // "", "DEPOT", "EXAMEN", "SORT", "CIRCULATION"
     let (page_size, set_page_size) = create_signal(20usize);
     let (show_undated, set_show_undated) = create_signal(false);
 
