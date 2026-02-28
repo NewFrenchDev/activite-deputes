@@ -43,8 +43,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: pipeline/.work/
-          key: pipeline-work-${{ github.run_id }}
-          restore-keys: pipeline-work-
+          key: pipeline-work-${{ github.ref_name }}-v1
+          restore-keys: |
+            pipeline-work-${{ github.ref_name }}-
+            pipeline-work-
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
