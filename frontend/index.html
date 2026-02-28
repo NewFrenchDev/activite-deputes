@@ -152,6 +152,23 @@
       .skeleton { animation: none; }
     }
 
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block;
+      width: 1.2em;
+      height: 1.2em;
+      border: 2px solid var(--bg-border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      vertical-align: middle;
+    }
+    .spinner-lg { width: 2rem; height: 2rem; border-width: 3px; }
+    @media (prefers-reduced-motion: reduce) {
+      .spinner { animation: none; }
+    }
+
     /* Table styles */
     .data-table { border-collapse: collapse; width: 100%; }
     .data-table th {
@@ -670,6 +687,59 @@
       color: var(--text-secondary);
       line-height: 1.35;
       word-break: break-word;
+    }
+
+    /* Loading placeholder (spinner + text) */
+    .loading-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .6rem;
+      padding: 2rem 1rem;
+      color: var(--text-muted);
+      font-size: .85rem;
+    }
+
+    /* ────────────────────────────────────────────────────────────────
+       Positions-groupes — responsive table + layout
+       ──────────────────────────────────────────────────────────────── */
+    .pg-layout { display: grid; grid-template-columns: minmax(260px, 360px) 1fr; gap: 1rem; align-items: start; }
+    @media (max-width: 800px) {
+      .pg-layout { grid-template-columns: 1fr !important; }
+
+      /* PPL table → card layout */
+      .pg-table-wrap { overflow-x: unset !important; }
+      .pg-table thead {
+        position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+        overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+      }
+      .pg-table { table-layout: auto !important; }
+      .pg-table colgroup { display: none; }
+      .pg-table tbody tr {
+        display: block;
+        margin-bottom: .5rem;
+        border: 1px solid var(--bg-border);
+        border-radius: 8px;
+        padding: .75rem;
+        background: var(--bg-secondary);
+      }
+      .pg-table tbody tr:hover { background: var(--accent-dim); }
+      .pg-table tbody td {
+        display: block;
+        border-bottom: none;
+        padding: .2rem 0;
+        font-size: .82rem;
+      }
+      .pg-table tbody td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: .68rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        font-weight: 600;
+        margin-bottom: .1rem;
+      }
     }
   </style>
 </head>

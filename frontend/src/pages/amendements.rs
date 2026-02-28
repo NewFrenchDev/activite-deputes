@@ -387,7 +387,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                 }
                                 Some(Ok(None)) => view! { <p style="margin:0;color:var(--text-muted);">"Choisis un mois."</p> }.into_view(),
                                 Some(Err(e)) => view! { <p style="margin:0;color:var(--danger);">{e}</p> }.into_view(),
-                                None => view! { <p style="margin:0;color:var(--text-muted);">"Chargement…"</p> }.into_view(),
+                                None => view! { <div class="loading-box"><span class="spinner"></span>" Chargement des jours…"</div> }.into_view(),
                             }
                         }}
                     </div>
@@ -441,7 +441,7 @@ pub fn AmendementsPage() -> impl IntoView {
                             Some(Ok(Some(mf))) => mf,
                             Some(Ok(None)) => return view! { <p style="margin:0;color:var(--text-muted);">"Choisis un mois."</p> }.into_view(),
                             Some(Err(e)) => return view! { <p style="margin:0;color:var(--danger);">{e}</p> }.into_view(),
-                            None => return view! { <p style="margin:0;color:var(--text-muted);">"Chargement…"</p> }.into_view(),
+                            None => return view! { <div class="loading-box"><span class="spinner spinner-lg"></span>" Chargement des amendements…"</div> }.into_view(),
                         };
                         let day = match selected_day.get() {
                             Some(d) => d,
