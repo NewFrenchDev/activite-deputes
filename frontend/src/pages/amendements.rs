@@ -953,8 +953,8 @@ pub fn AmendementsPage() -> impl IntoView {
                                         <button
                                             type="button"
                                             class="btn"
-                                            disabled=move || current_page.get() <= 1
-                                            on:click=move |_| set_current_page.update(|p| { if *p > 1 { *p -= 1; } })
+                                            disabled={move || current_page.get() <= 1}
+                                            on:click={move |_| set_current_page.update(|p| { if *p > 1 { *p -= 1; } })}
                                             style="min-width:2.2rem;padding:0.35rem 0.6rem;font-size:0.82rem;"
                                         >"◀"</button>
                                         {items.into_iter().map(|(pnum, is_current)| {
@@ -977,8 +977,8 @@ pub fn AmendementsPage() -> impl IntoView {
                                         <button
                                             type="button"
                                             class="btn"
-                                            disabled=move || current_page.get() >= total_pages
-                                            on:click=move |_| set_current_page.update(|p| { if *p < total_pages { *p += 1; } })
+                                            disabled={move || current_page.get() >= total_pages}
+                                            on:click={move |_| set_current_page.update(|p| { if *p < total_pages { *p += 1; } })}
                                             style="min-width:2.2rem;padding:0.35rem 0.6rem;font-size:0.82rem;"
                                         >"▶"</button>
                                     </div>
