@@ -473,11 +473,20 @@ pub fn AmendementsPage() -> impl IntoView {
                                         .map(|d| format!("{} {} {}", d.prenom, d.nom, d.groupe_abrev.as_deref().unwrap_or("")))
                                         .unwrap_or_default();
                                     // Noms des cosignataires (pour chercher par cosignataire)
-                                    let cos_names: String = e.cos.iter()
+                                    let mut cos_names = String::new();
+                                    for (i, d) in e
+                                        .cos
+                                        .iter()
                                         .filter_map(|cid| dep_map.get(cid.as_str()))
-                                        .map(|d| format!("{} {}", d.prenom, d.nom))
-                                        .collect::<Vec<_>>()
-                                        .join(" ");
+                                        .enumerate()
+                                    {
+                                        if i > 0 {
+                                            cos_names.push(' ');
+                                        }
+                                        cos_names.push_str(&d.prenom);
+                                        cos_names.push(' ');
+                                        cos_names.push_str(&d.nom);
+                                    }
                                     let dossier_title = e.did.as_deref()
                                         .and_then(|id| dos_map.get(id))
                                         .map(|s| s.as_str())
