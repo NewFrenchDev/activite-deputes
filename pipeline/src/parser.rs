@@ -1029,14 +1029,24 @@ fn parse_amendement(v: &serde_json::Value) -> Option<Amendement> {
             None
         });
 
+    // pointeurFragmentTexte : peut se trouver sous amendement.pointeurFragmentTexte,
+    // corps.pointeurFragmentTexte, ou directement pointeurFragmentTexte selon le format AN.
+    let pft = if v["amendement"]["pointeurFragmentTexte"].is_object() {
+        &v["amendement"]["pointeurFragmentTexte"]
+    } else if v["corps"]["pointeurFragmentTexte"].is_object() {
+        &v["corps"]["pointeurFragmentTexte"]
+    } else {
+        &v["pointeurFragmentTexte"]
+    };
+
     let dossier_ref = v["dossierRef"].as_str().map(String::from)
-        .or_else(|| v["pointeurFragmentTexte"]["texteLegislatifRef"].as_str().map(String::from));
-    let article = v["pointeurFragmentTexte"]["division"]["titre"].as_str().map(String::from);
-    let texte_ref = v["pointeurFragmentTexte"]["texteLegislatifRef"].as_str().map(String::from);
+        .or_else(|| pft["texteLegislatifRef"].as_str().map(String::from));
+    let article = pft["division"]["titre"].as_str().map(String::from);
+    let texte_ref = pft["texteLegislatifRef"].as_str().map(String::from);
 
     // Mission visée
-    let mission_visee = v["pointeurFragmentTexte"]["missionVisee"]["libelleMission"].as_str().map(String::from);
-    let mission_ref = v["pointeurFragmentTexte"]["missionVisee"]["missionRef"].as_str().map(String::from);
+    let mission_visee = pft["missionVisee"]["libelleMission"].as_str().map(String::from);
+    let mission_ref = pft["missionVisee"]["missionRef"].as_str().map(String::from);
 
     // Exposé sommaire — nettoyé (HTML strippé, whitespace collapsé, longueur limitée)
     let expose_sommaire = v["exposeSommaire"].as_str()
