@@ -275,8 +275,8 @@ pub fn PositionsGroupesPage() -> impl IntoView {
 
             {move || match index_res.get() {
                 None => view! {
-                    <div style="padding:1rem;border:1px solid var(--bg-border);border-radius:10px;background:var(--bg-secondary);color:var(--text-muted);">
-                        "Chargement de l'index PPL par groupe..."
+                    <div class="loading-box" style="border:1px solid var(--bg-border);border-radius:10px;background:var(--bg-secondary);">
+                        <span class="spinner"></span>" Chargement de l'index PPL par groupe…"
                     </div>
                 }.into_view(),
                 Some(Err(e)) => view! {
@@ -316,7 +316,7 @@ pub fn PositionsGroupesPage() -> impl IntoView {
                                     <MiniStatCard label="Groupe sélectionné" value=selected_group_label.get().unwrap_or_else(|| "—".to_string()) sub=selected_entry.map(|g| format!("{} entrées", g.ppl_count)).unwrap_or_else(|| "choisissez un groupe".to_string()) />
                                 </div>
 
-                                <section style="display:grid;grid-template-columns:minmax(260px, 360px) 1fr;gap:1rem;align-items:start;">
+                                <section class="pg-layout">
                                     <div style="display:flex;flex-direction:column;gap:.85rem;position:sticky;top:72px;">
                                         <div style="padding:.9rem;border:1px solid var(--bg-border);border-radius:10px;background:var(--bg-secondary);display:flex;flex-direction:column;gap:.7rem;">
                                             <div>
@@ -445,8 +445,8 @@ pub fn PositionsGroupesPage() -> impl IntoView {
                                     <div style="display:flex;flex-direction:column;gap:.85rem;">
                                         {move || match shard_res.get() {
                                             None => view! {
-                                                <div style="padding:1rem;border:1px solid var(--bg-border);border-radius:10px;background:var(--bg-secondary);color:var(--text-muted);">
-                                                    "Chargement du shard groupe..."
+                                                <div class="loading-box" style="border:1px solid var(--bg-border);border-radius:10px;background:var(--bg-secondary);">
+                                                    <span class="spinner"></span>" Chargement du shard groupe…"
                                                 </div>
                                             }.into_view(),
                                             Some(Err(e)) => view! {
@@ -511,8 +511,8 @@ pub fn PositionsGroupesPage() -> impl IntoView {
                                                             }.into_view()
                                                         }}
 
-                                                        <div style="border:1px solid var(--bg-border);border-radius:10px;overflow:hidden;background:var(--bg-secondary);">
-                                                            <table class="data-table" style="table-layout:fixed;">
+                                                        <div class="pg-table-wrap" style="border:1px solid var(--bg-border);border-radius:10px;overflow:hidden;background:var(--bg-secondary);">
+                                                            <table class="data-table pg-table" style="table-layout:fixed;">
                                                                 <colgroup>
                                                                     <col style="width:92px;" />
                                                                     <col style="width:84px;" />
@@ -624,11 +624,11 @@ fn render_row(item: GroupPplItemSummary) -> impl IntoView {
 
     view! {
         <tr>
-            <td>
+            <td data-label="Législature">
                 {item.legislature.map(|l| format!("L{}", l)).unwrap_or_else(|| "—".to_string())}
             </td>
-            <td>{relation_badge}</td>
-            <td>
+            <td data-label="Type">{relation_badge}</td>
+            <td data-label="Proposition de loi">
                 <div style="display:flex;flex-direction:column;gap:.2rem;">
                     {title_view}
                     {if !title_meta.is_empty() {
@@ -637,13 +637,13 @@ fn render_row(item: GroupPplItemSummary) -> impl IntoView {
                     <span style="font-size:.70rem;color:var(--text-muted);">{item.ppl_id}</span>
                 </div>
             </td>
-            <td>
+            <td data-label="Signataires du groupe">
                 <div style="display:flex;flex-direction:column;gap:.2rem;">
                     <span style="font-weight:600;">{item.total_signers_from_group.to_string()}</span>
                     <span style="font-size:.72rem;color:var(--text-muted);">{counts_label}</span>
                 </div>
             </td>
-            <td style="font-size:.74rem;color:var(--text-secondary);line-height:1.35;">
+            <td data-label="Aperçu" style="font-size:.74rem;color:var(--text-secondary);line-height:1.35;">
                 {preview_view}
             </td>
         </tr>
