@@ -663,8 +663,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                                 .collect::<Vec<_>>()
                                                 .join(", ");
 
-                                            // Clone dep_map for use in the reactive closure
-                                            let dep_map_clone = dep_map.clone();
+                                            // Use dep_map directly in closures or via a shared handle defined outside the loop.
 
                                             view!{
                                                 <tr>
