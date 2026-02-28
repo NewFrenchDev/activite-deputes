@@ -206,6 +206,8 @@ pub fn AmendementsPage() -> impl IntoView {
     let (selected_month, set_selected_month) = create_signal::<Option<String>>(None);
     let (selected_day, set_selected_day) = create_signal::<Option<String>>(None);
     let (filter, set_filter) = create_signal(String::new());
+    let (type_filter, set_type_filter) = create_signal(String::new()); // "", "DEPOT", "EXAMEN", "SORT"
+    let (page_size, set_page_size) = create_signal(20usize);
     let (show_undated, set_show_undated) = create_signal(false);
 
     // ── Ressources (chargement asynchrone) ─────────────────────────────────
@@ -458,7 +460,7 @@ pub fn AmendementsPage() -> impl IntoView {
                     </div>
                 </div>
 
-                // Colonne droite (détail du jour)
+                // Colonne droite (détail du jour — compact, même hauteur que Jours du mois)
                 <div class="kpi-card" style="min-width:340px;">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.6rem;">
                         <div>
@@ -466,18 +468,6 @@ pub fn AmendementsPage() -> impl IntoView {
                             <div style="color:var(--text-muted);font-size:0.78rem;">
                                 {move || selected_day.get().map(|d| fmt_date_fr(&d)).unwrap_or_else(|| "—".to_string())}
                             </div>
-                        </div>
-                        <div style="min-width:280px;max-width:420px;flex:1;">
-                            <label class="amd-label" for="amd-filter-input">"Filtrer (député, dossier, mission, mission ref, cosignataire, n°…)"</label>
-                            <input
-                                id="amd-filter-input"
-                                type="text"
-                                placeholder="ex: adopté, PLF, Durand, Travail, 123..."
-                                aria-label="Filtrer les évènements par nom, dossier, mission, cosignataire…"
-                                prop:value=move || filter.get()
-                                on:input=move |ev| set_filter.set(event_target_value(&ev))
-                                style="width:100%;"
-                            />
                         </div>
                     </div>
 
@@ -496,65 +486,6 @@ pub fn AmendementsPage() -> impl IntoView {
                         let kpis = compute_kpis(&events);
                         let top = top_deputies(&events);
                         let dep_map = deputes_map.get();
-                        let dos_map = dossiers_map.get();
-
-                        // Préparer liste filtrée (table)
-                        // On pré-normalise le needle une seule fois pour éviter
-                        // de le recalculer à chaque amendement (O(n) économisé).
-                        let needle = filter.get();
-                        let needle_norm = normalize_search(needle.trim());
-                        let filtered: Vec<AmendementEvent> = if needle_norm.is_empty() {
-                            events.clone()
-                        } else {
-                            events
-                                .iter()
-                                .cloned()
-                                .filter(|e| {
-                                    // Auteur principal : nom + groupe
-                                    let dep_name = e
-                                        .aid
-                                        .as_deref()
-                                        .and_then(|id| dep_map.get(id))
-                                        .map(|d| format!("{} {} {}", d.prenom, d.nom, d.groupe_abrev.as_deref().unwrap_or("")))
-                                        .unwrap_or_default();
-                                    // Noms des cosignataires (pour chercher par cosignataire)
-                                    let mut cos_names = String::new();
-                                    for (i, d) in e
-                                        .cos
-                                        .iter()
-                                        .filter_map(|cid| dep_map.get(cid.as_str()))
-                                        .enumerate()
-                                    {
-                                        if i > 0 {
-                                            cos_names.push(' ');
-                                        }
-                                        cos_names.push_str(&d.prenom);
-                                        cos_names.push(' ');
-                                        cos_names.push_str(&d.nom);
-                                    }
-                                    let dossier_title = e.did.as_deref()
-                                        .and_then(|id| dos_map.get(id))
-                                        .map(|s| s.as_str())
-                                        .unwrap_or("");
-                                    let hay = format!(
-                                        "{} {} {} {} {} {} {} {} {} {} {} {}",
-                                        e.t,
-                                        e.id,
-                                        e.n.as_deref().unwrap_or(""),
-                                        dep_name,
-                                        e.aty.as_deref().unwrap_or(""),
-                                        e.did.as_deref().unwrap_or(""),
-                                        dossier_title,
-                                        e.s.as_deref().unwrap_or(""),
-                                        e.exp.as_deref().unwrap_or(""),
-                                        e.mis.as_deref().unwrap_or(""),
-                                        e.mref.as_deref().unwrap_or(""),
-                                        cos_names,
-                                    );
-                                    matches_search_normalized(&hay, &needle_norm)
-                                })
-                                .collect()
-                        };
 
                         view! {
                             <div class="amd-kpi-row">
@@ -593,7 +524,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                         <h3 style="margin:0;font-size:0.98rem;">"Députés les + actifs"</h3>
                                         <span style="color:var(--text-muted);font-size:0.78rem;">{format!("{} auteurs", top.len())}</span>
                                     </div>
-                                    <div class="amd-rank">
+                                    <div class="amd-rank" style="max-height:220px;overflow-y:auto;">
                                         {top.into_iter().map(|(id, count)| {
                                             let dep = dep_map.get(&id);
                                             let (name, grp, href_id) = deputy_display(dep);
@@ -670,17 +601,148 @@ pub fn AmendementsPage() -> impl IntoView {
                                 </div>
                             </div>
 
-                            <hr style="border:0;border-top:1px solid var(--bg-border);margin:0.85rem 0;" />
+                        }
+                        .into_view()
+                    }}
+                </div>
 
-                            <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.6rem;">
-                                <h3 style="margin:0;font-size:1rem;">"Journal des évènements"</h3>
-                                <span style="color:var(--text-muted);font-size:0.78rem;">
-                                    {format!("{} évènements • {} affichés", events.len(), filtered.len())}
-                                </span>
+                // Journal des évènements (pleine largeur, sous la grille principale)
+                <div class="kpi-card" style="grid-column:1/-1;min-width:0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.6rem;">
+                        <h3 style="margin:0;font-size:1rem;">"Journal des évènements"</h3>
+                        <div class="amd-journal-controls">
+                            <div class="amd-filter-row">
+                                <input
+                                    id="amd-filter-input"
+                                    type="text"
+                                    placeholder="ex: adopté, PLF, Durand, 123..."
+                                    aria-label="Filtrer les évènements"
+                                    prop:value=move || filter.get()
+                                    on:input=move |ev| set_filter.set(event_target_value(&ev))
+                                    style="flex:1;min-width:140px;"
+                                />
+                                <select
+                                    aria-label="Filtrer par type"
+                                    on:change=move |ev| set_type_filter.set(event_target_value(&ev))
+                                    class="amd-select"
+                                >
+                                    <option value="" selected=move || type_filter.get().is_empty()>"Tous types"</option>
+                                    <option value="DEPOT" selected=move || type_filter.get() == "DEPOT">"Dépôt"</option>
+                                    <option value="EXAMEN" selected=move || type_filter.get() == "EXAMEN">"Examen"</option>
+                                    <option value="SORT" selected=move || type_filter.get() == "SORT">"Sort"</option>
+                                    <option value="CIRCULATION" selected=move || type_filter.get() == "CIRCULATION">"Circulation"</option>
+                                </select>
+                            </div>
+                            <div class="amd-page-size-row">
+                                <span style="color:var(--text-muted);font-size:0.78rem;">"Afficher"</span>
+                                <select
+                                    aria-label="Nombre d'évènements par page"
+                                    on:change=move |ev| {
+                                        if let Ok(n) = event_target_value(&ev).parse::<usize>() {
+                                            set_page_size.set(n);
+                                        }
+                                    }
+                                    class="amd-select amd-select-sm"
+                                >
+                                    <option value="20" selected=move || page_size.get() == 20>"20"</option>
+                                    <option value="50" selected=move || page_size.get() == 50>"50"</option>
+                                    <option value="100" selected=move || page_size.get() == 100>"100"</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {move || {
+                        let mf = match month_res.get() {
+                            Some(Ok(Some(mf))) => mf,
+                            Some(Ok(None)) => return view! { <p style="margin:0;color:var(--text-muted);">"Choisis un mois."</p> }.into_view(),
+                            Some(Err(e)) => return view! { <p style="margin:0;color:var(--danger);">{e}</p> }.into_view(),
+                            None => return view! { <div class="loading-box"><span class="spinner spinner-lg"></span>" Chargement…"</div> }.into_view(),
+                        };
+                        let day = match selected_day.get() {
+                            Some(d) => d,
+                            None => return view! { <p style="margin:0;color:var(--text-muted);">"Choisis un jour pour voir le journal."</p> }.into_view(),
+                        };
+                        let events = mf.days.get(&day).cloned().unwrap_or_default();
+                        let dep_map = deputes_map.get();
+                        let dos_map = dossiers_map.get();
+
+                        // Filtrage par type
+                        let type_f = type_filter.get();
+                        let after_type: Vec<AmendementEvent> = if type_f.is_empty() {
+                            events.clone()
+                        } else {
+                            events.iter().cloned().filter(|e| e.t == type_f).collect()
+                        };
+
+                        // Filtrage par texte
+                        let needle = filter.get();
+                        let needle_norm = normalize_search(needle.trim());
+                        let filtered: Vec<AmendementEvent> = if needle_norm.is_empty() {
+                            after_type
+                        } else {
+                            after_type
+                                .iter()
+                                .cloned()
+                                .filter(|e| {
+                                    let dep_name = e
+                                        .aid
+                                        .as_deref()
+                                        .and_then(|id| dep_map.get(id))
+                                        .map(|d| format!("{} {} {}", d.prenom, d.nom, d.groupe_abrev.as_deref().unwrap_or("")))
+                                        .unwrap_or_default();
+                                    let mut cos_names = String::new();
+                                    for (i, d) in e
+                                        .cos
+                                        .iter()
+                                        .filter_map(|cid| dep_map.get(cid.as_str()))
+                                        .enumerate()
+                                    {
+                                        if i > 0 {
+                                            cos_names.push(' ');
+                                        }
+                                        cos_names.push_str(&d.prenom);
+                                        cos_names.push(' ');
+                                        cos_names.push_str(&d.nom);
+                                    }
+                                    let dossier_title = e.did.as_deref()
+                                        .and_then(|id| dos_map.get(id))
+                                        .map(|s| s.as_str())
+                                        .unwrap_or("");
+                                    let hay = format!(
+                                        "{} {} {} {} {} {} {} {} {} {} {} {}",
+                                        e.t,
+                                        e.id,
+                                        e.n.as_deref().unwrap_or(""),
+                                        dep_name,
+                                        e.aty.as_deref().unwrap_or(""),
+                                        e.did.as_deref().unwrap_or(""),
+                                        dossier_title,
+                                        e.s.as_deref().unwrap_or(""),
+                                        e.exp.as_deref().unwrap_or(""),
+                                        e.mis.as_deref().unwrap_or(""),
+                                        e.mref.as_deref().unwrap_or(""),
+                                        cos_names,
+                                    );
+                                    matches_search_normalized(&hay, &needle_norm)
+                                })
+                                .collect()
+                        };
+
+                        // Pagination
+                        let psize = page_size.get();
+                        let total = filtered.len();
+                        let total_events = events.len();
+                        let display: Vec<AmendementEvent> = filtered.into_iter().take(psize).collect();
+                        let shown = display.len();
+
+                        view! {
+                            <div style="color:var(--text-muted);font-size:0.78rem;margin-bottom:0.5rem;">
+                                {format!("{} évènements • {} filtrés • {} affichés", total_events, total, shown)}
                             </div>
 
                             <div class="amd-cards-list" role="list" aria-label="Évènements amendements du jour">
-                                {filtered.into_iter().enumerate().map(|(_idx, e)| {
+                                {display.into_iter().enumerate().map(|(_idx, e)| {
                                     let dep = e.aid.as_deref().and_then(|id| dep_map.get(id));
                                     let (name, grp, href_id) = deputy_display(dep);
                                     let dot = groupe_color(grp.as_deref());
@@ -856,6 +918,16 @@ pub fn AmendementsPage() -> impl IntoView {
                                     }
                                 }).collect_view()}
                             </div>
+
+                            {if total > shown {
+                                view! {
+                                    <div style="margin-top:0.6rem;color:var(--text-muted);font-size:0.82rem;text-align:center;">
+                                        {format!("{} évènements supplémentaires non affichés. Augmentez le nombre par page ou affinez le filtre.", total - shown)}
+                                    </div>
+                                }.into_view()
+                            } else {
+                                view! {}.into_view()
+                            }}
                         }
                         .into_view()
                     }}
@@ -864,8 +936,6 @@ pub fn AmendementsPage() -> impl IntoView {
                         if !show_undated.get() {
                             return view! {}.into_view();
                         }
-                        // On n'affiche pas le contenu undated ici pour éviter un gros download.
-                        // Le compteur + lien de fichier est déjà visible à gauche.
                         view! {
                             <div style="margin-top:0.9rem;color:var(--text-muted);font-size:0.82rem;line-height:1.35;">
                                 <span class="badge">"Sans date"</span>
