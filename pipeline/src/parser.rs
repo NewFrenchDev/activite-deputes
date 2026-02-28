@@ -71,6 +71,8 @@ const EXPOSE_MAX_CHARS: usize = 500;
 /// Nettoie un exposé sommaire brut issu de l'open data :
 /// Decode numeric HTML entities: &#xHEX; and &#DEC; → Unicode character
 fn decode_numeric_entities(input: &str) -> String {
+    // HTML numeric entities are at most ~8 chars (e.g. &#x10FFFF), 10 is a safe upper bound.
+    const MAX_ENTITY_LEN: usize = 10;
     let mut result = String::with_capacity(input.len());
     let mut chars = input.chars().peekable();
     while let Some(ch) = chars.next() {
@@ -84,7 +86,7 @@ fn decode_numeric_entities(input: &str) -> String {
                 }
                 entity.push(c);
                 chars.next();
-                if entity.len() > 10 { break; } // safety limit
+                if entity.len() > MAX_ENTITY_LEN { break; }
             }
             let body = &entity[2..];
             let code_point = if body.starts_with('x') || body.starts_with('X') {

@@ -8,6 +8,8 @@ use crate::utils::{app_href, groupe_color, matches_search_normalized, normalize_
 
 /// Decode numeric HTML entities (&#xHEX; and &#DEC;) and common named entities for display.
 fn decode_html_entities(input: &str) -> String {
+    // HTML numeric entities are at most ~8 chars (e.g. &#x10FFFF), 10 is a safe upper bound.
+    const MAX_ENTITY_LEN: usize = 10;
     // First pass: named entities
     let s = input
         .replace("&nbsp;", " ")
@@ -30,7 +32,7 @@ fn decode_html_entities(input: &str) -> String {
                 }
                 entity.push(c);
                 chars.next();
-                if entity.len() > 10 { break; }
+                if entity.len() > MAX_ENTITY_LEN { break; }
             }
             let body = &entity[2..];
             let code_point = if body.starts_with('x') || body.starts_with('X') {
