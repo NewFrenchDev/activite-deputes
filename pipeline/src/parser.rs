@@ -76,11 +76,26 @@ fn normalize_expose_sommaire(raw: &str, max_chars: usize) -> String {
     // Strip HTML tags
     let mut out = String::with_capacity(raw.len());
     let mut in_tag = false;
+    // Track whether the last emitted character was whitespace to avoid
+    // concatenating words when tags are adjacent to text without spaces.
+    let mut last_was_space = true;
     for ch in raw.chars() {
         match ch {
-            '<' => in_tag = true,
-            '>' => in_tag = false,
-            _ if !in_tag => out.push(ch),
+            '<' => {
+                // We are starting a tag after some text: ensure a separator.
+                if !in_tag && !last_was_space {
+                    out.push(' ');
+                    last_was_space = true;
+                }
+                in_tag = true;
+            }
+            '>' => {
+                in_tag = false;
+            }
+            _ if !in_tag => {
+                out.push(ch);
+                last_was_space = ch.is_whitespace();
+            }
             _ => {}
         }
     }
