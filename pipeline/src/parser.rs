@@ -64,6 +64,76 @@ fn normalize_profession_label(raw: &str) -> String {
     s.to_string()
 }
 
+/// Longueur maximale (en caractères) de l'exposé sommaire exporté.
+/// Au-delà, le texte est tronqué avec "…".
+const EXPOSE_MAX_CHARS: usize = 500;
+
+/// Nettoie un exposé sommaire brut issu de l'open data :
+/// 1. Supprime les balises HTML (ex: <p>, <br>)
+/// 2. Décode quelques entités HTML courantes (ex: &nbsp;, &amp;, &lt;, &gt;, &quot;, &#39;)
+/// 3. Collapse les espaces multiples
+/// 4. Tronque à `max_chars` caractères avec "…"
+fn normalize_expose_sommaire(raw: &str, max_chars: usize) -> String {
+    // Strip HTML tags
+    let mut out = String::with_capacity(raw.len());
+    let mut in_tag = false;
+    // Track whether the last emitted character was whitespace to avoid
+    // concatenating words when tags are adjacent to text without spaces.
+    let mut last_was_space = true;
+    for ch in raw.chars() {
+        match ch {
+            '<' => {
+                // We are starting a tag after some text: ensure a separator.
+                if !in_tag && !last_was_space {
+                    out.push(' ');
+                    last_was_space = true;
+                }
+                in_tag = true;
+            }
+            '>' => {
+                in_tag = false;
+            }
+            _ if !in_tag => {
+                out.push(ch);
+                last_was_space = ch.is_whitespace();
+            }
+            _ => {}
+        }
+    }
+
+    // Decode common HTML entities
+    let out = out
+        .replace("&nbsp;", " ")
+        .replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&#39;", "'");
+
+    // Collapse whitespace
+    let collapsed: String = out.split_whitespace().collect::<Vec<_>>().join(" ");
+    let trimmed = collapsed.trim();
+
+    if trimmed.is_empty() {
+        return String::new();
+    }
+
+    // Truncate
+    if max_chars == 0 || trimmed.chars().count() <= max_chars {
+        return trimmed.to_string();
+    }
+
+    let mut result = String::new();
+    for (i, ch) in trimmed.chars().enumerate() {
+        if i >= max_chars {
+            result.push('…');
+            break;
+        }
+        result.push(ch);
+    }
+    result
+}
+
 fn normalize_sexe_label(raw: &str) -> Option<String> {
     let s = raw.split_whitespace().collect::<Vec<_>>().join(" ");
     let t = s.trim();
@@ -926,8 +996,10 @@ fn parse_amendement(v: &serde_json::Value) -> Option<Amendement> {
     // Mission visée
     let mission_visee = v["pointeurFragmentTexte"]["missionVisee"]["libelleMission"].as_str().map(String::from);
 
-    // Exposé sommaire
-    let expose_sommaire = v["exposeSommaire"].as_str().map(String::from);
+    // Exposé sommaire — nettoyé (HTML strippé, whitespace collapsé, longueur limitée)
+    let expose_sommaire = v["exposeSommaire"].as_str()
+        .map(|s| normalize_expose_sommaire(s, EXPOSE_MAX_CHARS))
+        .filter(|s| !s.is_empty());
 
     Some(Amendement {
         id,
@@ -1254,4 +1326,164 @@ fn parse_date(s: &str) -> Option<NaiveDate> {
                 None
             }
         })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ─── parse_date ────────────────────────────────────────────────────────
+    #[test]
+    fn parse_date_iso() {
+        assert_eq!(parse_date("2023-06-19"), Some(NaiveDate::from_ymd_opt(2023, 6, 19).unwrap()));
+    }
+
+    #[test]
+    fn parse_date_french() {
+        assert_eq!(parse_date("19/06/2023"), Some(NaiveDate::from_ymd_opt(2023, 6, 19).unwrap()));
+    }
+
+    #[test]
+    fn parse_date_datetime() {
+        assert_eq!(parse_date("2023-01-15T00:00:00"), Some(NaiveDate::from_ymd_opt(2023, 1, 15).unwrap()));
+    }
+
+    #[test]
+    fn parse_date_empty_or_null() {
+        assert_eq!(parse_date(""), None);
+        assert_eq!(parse_date("null"), None);
+        assert_eq!(parse_date("  "), None);
+    }
+
+    #[test]
+    fn parse_date_garbage() {
+        assert_eq!(parse_date("not-a-date"), None);
+    }
+
+    // ─── normalize_expose_sommaire ─────────────────────────────────────────
+    #[test]
+    fn expose_strips_html_tags() {
+        let raw = "<p>Cet amendement <b>vise</b> à clarifier.</p>";
+        let result = normalize_expose_sommaire(raw, 500);
+        assert_eq!(result, "Cet amendement vise à clarifier.");
+    }
+
+    #[test]
+    fn expose_collapses_whitespace() {
+        let raw = "  Texte   avec   espaces   multiples  ";
+        let result = normalize_expose_sommaire(raw, 500);
+        assert_eq!(result, "Texte avec espaces multiples");
+    }
+
+    #[test]
+    fn expose_decodes_html_entities() {
+        let raw = "A&nbsp;B &amp; C &lt;D&gt;";
+        let result = normalize_expose_sommaire(raw, 500);
+        assert_eq!(result, "A B & C <D>");
+    }
+
+    #[test]
+    fn expose_truncates_with_ellipsis() {
+        let raw = "Cet amendement vise à modifier le texte pour clarifier la situation.";
+        let result = normalize_expose_sommaire(raw, 20);
+        assert!(result.ends_with('…'));
+        assert!(result.chars().count() <= 21); // 20 + ellipsis
+    }
+
+    #[test]
+    fn expose_empty_input() {
+        assert_eq!(normalize_expose_sommaire("", 500), "");
+        assert_eq!(normalize_expose_sommaire("   ", 500), "");
+        assert_eq!(normalize_expose_sommaire("<br/>", 500), "");
+    }
+
+    #[test]
+    fn expose_no_truncation_when_short() {
+        let raw = "Court texte.";
+        assert_eq!(normalize_expose_sommaire(raw, 500), "Court texte.");
+    }
+
+    // ─── normalize_profession_label ────────────────────────────────────────
+    #[test]
+    fn profession_strips_code_prefix() {
+        assert_eq!(normalize_profession_label("(35) — Professeur"), "Professeur");
+        assert_eq!(normalize_profession_label("(12)-Avocat"), "Avocat");
+    }
+
+    #[test]
+    fn profession_keeps_plain_label() {
+        assert_eq!(normalize_profession_label("Ingénieur"), "Ingénieur");
+    }
+
+    // ─── normalize_sexe_label ──────────────────────────────────────────────
+    #[test]
+    fn sexe_normalizes_variants() {
+        assert_eq!(normalize_sexe_label("M"), Some("Homme".to_string()));
+        assert_eq!(normalize_sexe_label("Mme"), Some("Femme".to_string()));
+        assert_eq!(normalize_sexe_label("Monsieur"), Some("Homme".to_string()));
+        assert_eq!(normalize_sexe_label("Madame"), Some("Femme".to_string()));
+    }
+
+    #[test]
+    fn sexe_empty_or_null() {
+        assert_eq!(normalize_sexe_label(""), None);
+        assert_eq!(normalize_sexe_label("null"), None);
+    }
+
+    // ─── parse_amendement ──────────────────────────────────────────────────
+    #[test]
+    fn parse_amendement_extracts_fields() {
+        let json = serde_json::json!({
+            "uid": "AMANR5L17PO123456-1",
+            "identificatif": { "numero": "42" },
+            "signataires": {
+                "auteur": {
+                    "acteurRef": "PA1234",
+                    "typeAuteur": "Député"
+                },
+                "cosignataires": {
+                    "acteurRef": ["PA5678", "PA9999"]
+                }
+            },
+            "cycleDeVie": {
+                "sort": "Adopté",
+                "dateDepot": "2024-01-15",
+                "dateSort": "2024-01-20"
+            },
+            "dossierRef": "DLR5L17N12345",
+            "pointeurFragmentTexte": {
+                "division": { "titre": "Art. 3" },
+                "texteLegislatifRef": "PRJLANR5L17B12345",
+                "missionVisee": { "libelleMission": "Travail" }
+            },
+            "exposeSommaire": "<p>Cet amendement <b>vise</b> à clarifier.</p>"
+        });
+
+        let result = parse_amendement(&json).expect("should parse");
+        assert_eq!(result.id, "AMANR5L17PO123456-1");
+        assert_eq!(result.numero, Some("42".to_string()));
+        assert_eq!(result.auteur_id, Some("PA1234".to_string()));
+        assert_eq!(result.auteur_type, Some("Député".to_string()));
+        assert_eq!(result.cosignataires_ids, vec!["PA5678".to_string(), "PA9999".to_string()]);
+        assert!(result.adopte);
+        assert_eq!(result.date_depot, Some(NaiveDate::from_ymd_opt(2024, 1, 15).unwrap()));
+        assert_eq!(result.date_sort, Some(NaiveDate::from_ymd_opt(2024, 1, 20).unwrap()));
+        assert_eq!(result.article, Some("Art. 3".to_string()));
+        assert_eq!(result.mission_visee, Some("Travail".to_string()));
+        // Expose should be HTML-stripped
+        assert_eq!(result.expose_sommaire, Some("Cet amendement vise à clarifier.".to_string()));
+    }
+
+    #[test]
+    fn parse_amendement_missing_optional_fields() {
+        let json = serde_json::json!({
+            "uid": "AMD-MINIMAL"
+        });
+        let result = parse_amendement(&json).expect("should parse minimal");
+        assert_eq!(result.id, "AMD-MINIMAL");
+        assert_eq!(result.auteur_id, None);
+        assert_eq!(result.cosignataires_ids, Vec::<String>::new());
+        assert_eq!(result.expose_sommaire, None);
+        assert!(!result.adopte);
+    }
 }
