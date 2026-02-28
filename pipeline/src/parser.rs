@@ -69,10 +69,46 @@ fn normalize_profession_label(raw: &str) -> String {
 const EXPOSE_MAX_CHARS: usize = 500;
 
 /// Nettoie un exposé sommaire brut issu de l'open data :
+/// Decode numeric HTML entities: &#xHEX; and &#DEC; → Unicode character
+fn decode_numeric_entities(input: &str) -> String {
+    let mut result = String::with_capacity(input.len());
+    let mut chars = input.chars().peekable();
+    while let Some(ch) = chars.next() {
+        if ch == '&' && chars.peek() == Some(&'#') {
+            let mut entity = String::from("&#");
+            chars.next(); // consume '#'
+            while let Some(&c) = chars.peek() {
+                if c == ';' {
+                    chars.next(); // consume ';'
+                    break;
+                }
+                entity.push(c);
+                chars.next();
+                if entity.len() > 10 { break; } // safety limit
+            }
+            let body = &entity[2..];
+            let code_point = if body.starts_with('x') || body.starts_with('X') {
+                u32::from_str_radix(&body[1..], 16).ok()
+            } else {
+                body.parse::<u32>().ok()
+            };
+            match code_point.and_then(char::from_u32) {
+                Some(decoded) => result.push(decoded),
+                None => { result.push_str(&entity); result.push(';'); }
+            }
+        } else {
+            result.push(ch);
+        }
+    }
+    result
+}
+
+/// Normalise un exposé sommaire brut :
 /// 1. Supprime les balises HTML (ex: <p>, <br>)
 /// 2. Décode quelques entités HTML courantes (ex: &nbsp;, &amp;, &lt;, &gt;, &quot;, &#39;)
-/// 3. Collapse les espaces multiples
-/// 4. Tronque à `max_chars` caractères avec "…"
+/// 3. Décode les entités numériques (ex: &#x00E9; → é, &#233; → é)
+/// 4. Collapse les espaces multiples
+/// 5. Tronque à `max_chars` caractères avec "…"
 fn normalize_expose_sommaire(raw: &str, max_chars: usize) -> String {
     // Strip HTML tags
     let mut out = String::with_capacity(raw.len());
@@ -109,6 +145,9 @@ fn normalize_expose_sommaire(raw: &str, max_chars: usize) -> String {
         .replace("&gt;", ">")
         .replace("&quot;", "\"")
         .replace("&#39;", "'");
+
+    // Decode numeric HTML entities: &#xHEX; and &#DEC;
+    let out = decode_numeric_entities(&out);
 
     // Collapse whitespace
     let collapsed: String = out.split_whitespace().collect::<Vec<_>>().join(" ");
@@ -995,6 +1034,7 @@ fn parse_amendement(v: &serde_json::Value) -> Option<Amendement> {
 
     // Mission visée
     let mission_visee = v["pointeurFragmentTexte"]["missionVisee"]["libelleMission"].as_str().map(String::from);
+    let mission_ref = v["pointeurFragmentTexte"]["missionVisee"]["missionRef"].as_str().map(String::from);
 
     // Exposé sommaire — nettoyé (HTML strippé, whitespace collapsé, longueur limitée)
     let expose_sommaire = v["exposeSommaire"].as_str()
@@ -1019,6 +1059,7 @@ fn parse_amendement(v: &serde_json::Value) -> Option<Amendement> {
         texte_ref,
         adopte,
         mission_visee,
+        mission_ref,
         expose_sommaire,
     })
 }
@@ -1404,6 +1445,18 @@ mod tests {
         assert_eq!(normalize_expose_sommaire(raw, 500), "Court texte.");
     }
 
+    #[test]
+    fn expose_decodes_numeric_hex_entities() {
+        let raw = "pr&#x00E9;cis&#x00E9;ment";
+        assert_eq!(normalize_expose_sommaire(raw, 500), "précisément");
+    }
+
+    #[test]
+    fn expose_decodes_numeric_decimal_entities() {
+        let raw = "pr&#233;cis&#233;ment";
+        assert_eq!(normalize_expose_sommaire(raw, 500), "précisément");
+    }
+
     // ─── normalize_profession_label ────────────────────────────────────────
     #[test]
     fn profession_strips_code_prefix() {
@@ -1455,7 +1508,7 @@ mod tests {
             "pointeurFragmentTexte": {
                 "division": { "titre": "Art. 3" },
                 "texteLegislatifRef": "PRJLANR5L17B12345",
-                "missionVisee": { "libelleMission": "Travail" }
+                "missionVisee": { "libelleMission": "Travail", "missionRef": "MIS-REF-001" }
             },
             "exposeSommaire": "<p>Cet amendement <b>vise</b> à clarifier.</p>"
         });
@@ -1471,6 +1524,7 @@ mod tests {
         assert_eq!(result.date_sort, Some(NaiveDate::from_ymd_opt(2024, 1, 20).unwrap()));
         assert_eq!(result.article, Some("Art. 3".to_string()));
         assert_eq!(result.mission_visee, Some("Travail".to_string()));
+        assert_eq!(result.mission_ref, Some("MIS-REF-001".to_string()));
         // Expose should be HTML-stripped
         assert_eq!(result.expose_sommaire, Some("Cet amendement vise à clarifier.".to_string()));
     }

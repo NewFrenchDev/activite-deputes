@@ -6,6 +6,49 @@ use crate::api::{fetch_amendements_index, fetch_amendements_month, fetch_deputes
 use crate::models::{AmendementEvent, AmendementsIndex, AmendementsMonthFile, DeputeInfo, DossiersMin};
 use crate::utils::{app_href, groupe_color, matches_search_normalized, normalize_search};
 
+/// Decode numeric HTML entities (&#xHEX; and &#DEC;) and common named entities for display.
+fn decode_html_entities(input: &str) -> String {
+    // First pass: named entities
+    let s = input
+        .replace("&nbsp;", " ")
+        .replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&#39;", "'");
+    // Second pass: numeric entities
+    let mut result = String::with_capacity(s.len());
+    let mut chars = s.chars().peekable();
+    while let Some(ch) = chars.next() {
+        if ch == '&' && chars.peek() == Some(&'#') {
+            let mut entity = String::from("&#");
+            chars.next(); // consume '#'
+            while let Some(&c) = chars.peek() {
+                if c == ';' {
+                    chars.next();
+                    break;
+                }
+                entity.push(c);
+                chars.next();
+                if entity.len() > 10 { break; }
+            }
+            let body = &entity[2..];
+            let code_point = if body.starts_with('x') || body.starts_with('X') {
+                u32::from_str_radix(&body[1..], 16).ok()
+            } else {
+                body.parse::<u32>().ok()
+            };
+            match code_point.and_then(char::from_u32) {
+                Some(decoded) => result.push(decoded),
+                None => { result.push_str(&entity); result.push(';'); }
+            }
+        } else {
+            result.push(ch);
+        }
+    }
+    result
+}
+
 fn fmt_date_fr(iso: &str) -> String {
     // "YYYY-MM-DD" -> "DD/MM/YYYY" (fallback si format inattendu)
     let parts: Vec<&str> = iso.split('-').collect();
@@ -423,7 +466,7 @@ pub fn AmendementsPage() -> impl IntoView {
                             </div>
                         </div>
                         <div style="min-width:280px;max-width:420px;flex:1;">
-                            <label class="amd-label" for="amd-filter-input">"Filtrer (député, dossier, mission, cosignataire, n°…)"</label>
+                            <label class="amd-label" for="amd-filter-input">"Filtrer (député, dossier, mission, mission ref, cosignataire, n°…)"</label>
                             <input
                                 id="amd-filter-input"
                                 type="text"
@@ -492,7 +535,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                         .map(|s| s.as_str())
                                         .unwrap_or("");
                                     let hay = format!(
-                                        "{} {} {} {} {} {} {} {} {} {} {}",
+                                        "{} {} {} {} {} {} {} {} {} {} {} {}",
                                         e.t,
                                         e.id,
                                         e.n.as_deref().unwrap_or(""),
@@ -503,6 +546,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                         e.s.as_deref().unwrap_or(""),
                                         e.exp.as_deref().unwrap_or(""),
                                         e.mis.as_deref().unwrap_or(""),
+                                        e.mref.as_deref().unwrap_or(""),
                                         cos_names,
                                     );
                                     matches_search_normalized(&hay, &needle_norm)
@@ -591,7 +635,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                                 let dep = e.aid.as_deref().and_then(|id| dep_map.get(id));
                                                 let (name, grp, _) = deputy_display(dep);
                                                 let dot = groupe_color(grp.as_deref());
-                                                let expose = e.exp.clone().unwrap_or_default();
+                                                let expose = decode_html_entities(&e.exp.clone().unwrap_or_default());
                                                 let type_chip = type_class(&e.t);
                                                 view! {
                                                     <div style=format!("margin:0.6rem 0;padding:0.65rem;border-left:3px solid {};background:rgba(255,255,255,.02);border-radius:4px;", dot)>
@@ -633,88 +677,88 @@ pub fn AmendementsPage() -> impl IntoView {
                                 </span>
                             </div>
 
-                            <div class="amd-table-wrap" role="region" aria-label="Tableau des évènements amendements du jour">
-                                <table class="amd-table" style="border-collapse:collapse;width:100%;min-width:1200px;background:rgba(255,255,255,.02);">
-                                    <thead>
-                                        <tr>
-                                            <th class="amd-th">"Type"</th>
-                                            <th class="amd-th">"Auteur"</th>
-                                            <th class="amd-th">"Cosig."</th>
-                                            <th class="amd-th">"Amendement"</th>
-                                            <th class="amd-th">"Dossier"</th>
-                                            <th class="amd-th">"Mission"</th>
-                                            <th class="amd-th">"Article"</th>
-                                            <th class="amd-th">"Sort"</th>
-                                            <th class="amd-th">"Exposé sommaire"</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filtered.into_iter().enumerate().map(|(_idx, e)| {
-                                            let dep = e.aid.as_deref().and_then(|id| dep_map.get(id));
-                                            let (name, grp, href_id) = deputy_display(dep);
-                                            let dot = groupe_color(grp.as_deref());
-                                            let href = href_id.map(|x| app_href(&format!("/depute/{x}")));
+                            <div class="amd-cards-list" role="list" aria-label="Évènements amendements du jour">
+                                {filtered.into_iter().enumerate().map(|(_idx, e)| {
+                                    let dep = e.aid.as_deref().and_then(|id| dep_map.get(id));
+                                    let (name, grp, href_id) = deputy_display(dep);
+                                    let dot = groupe_color(grp.as_deref());
+                                    let href = href_id.map(|x| app_href(&format!("/depute/{x}")));
 
-                                            let dossier_title = e.did.as_deref().and_then(|id| dos_map.get(id)).cloned().unwrap_or_else(|| "—".to_string());
-                                            let dossier_id = e.did.clone().unwrap_or_default();
+                                    let dossier_title = e.did.as_deref().and_then(|id| dos_map.get(id)).cloned().unwrap_or_else(|| "—".to_string());
 
-                                            let amd_label = e.n.clone().unwrap_or_default();
-                                            let sort_view = match e.s.clone() {
-                                                Some(s) if e.ok => view!{ <span class="badge" style="border-color:rgba(52,211,153,.35);background:rgba(52,211,153,.12);color:var(--success);">{s}</span> }.into_view(),
-                                                Some(s) => view!{ <span class="badge">{s}</span> }.into_view(),
-                                                None => view!{ <span style="color:var(--text-muted);">"—"</span> }.into_view(),
-                                            };
+                                    let amd_label = e.n.clone().unwrap_or_default();
+                                    let sort_view = match e.s.clone() {
+                                        Some(s) if e.ok => view!{ <span class="badge" style="border-color:rgba(52,211,153,.35);background:rgba(52,211,153,.12);color:var(--success);">{s}</span> }.into_view(),
+                                        Some(s) => view!{ <span class="badge">{s}</span> }.into_view(),
+                                        None => view!{ <span style="color:var(--text-muted);">"—"</span> }.into_view(),
+                                    };
 
-                                            let (show_cosig, set_show_cosig) = create_signal(false);
-                                            let cosig_count = e.cos.len();
-                                            let has_cosig = cosig_count > 0;
+                                    let (show_cosig, set_show_cosig) = create_signal(false);
+                                    let cosig_count = e.cos.len();
+                                    let has_cosig = cosig_count > 0;
 
-                                            let cosig_list = e.cos.clone();
-                                            let auteur_type = e.aty.clone();
-                                            let mission = e.mis.clone();
-                                            let expose = e.exp.clone();
+                                    let cosig_list = e.cos.clone();
+                                    let auteur_type = e.aty.clone();
+                                    let mission = e.mis.clone();
+                                    let mission_ref = e.mref.clone();
+                                    let expose = e.exp.clone();
 
-                                            // Tooltip listing cosignataire names (for title attribute)
-                                            let cosig_tooltip: String = cosig_list.iter()
-                                                .filter_map(|cid| dep_map.get(cid.as_str()))
-                                                .map(|d| format!("{} {}", d.prenom, d.nom))
-                                                .collect::<Vec<_>>()
-                                                .join(", ");
+                                    let cosig_tooltip: String = cosig_list.iter()
+                                        .filter_map(|cid| dep_map.get(cid.as_str()))
+                                        .map(|d| format!("{} {}", d.prenom, d.nom))
+                                        .collect::<Vec<_>>()
+                                        .join(", ");
 
-                                            let dep_map_clone = dep_map.clone();
+                                    let dep_map_clone = dep_map.clone();
 
-                                            view!{
-                                                <tr>
-                                                    // Type column
-                                                    <td class="amd-td">
-                                                        <span class={format!("amd-typechip {}", type_class(&e.t))}>{type_label(&e.t)}</span>
-                                                    </td>
-                                                    // Auteur column: deputy name + group badge + typeAuteur
-                                                    <td class="amd-td">
-                                                        <div style="display:flex;align-items:center;gap:.45rem;min-width:0;">
-                                                            <span class="amd-dot" style=format!("background:{dot};")></span>
-                                                            <div style="min-width:0;width:100%;">
-                                                                <div style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;">
-                                                                    {match href {
-                                                                        Some(h) => view!{ <A href=h class="amd-ellipsis amd-link">{name}</A> }.into_view(),
-                                                                        None => view!{ <span class="amd-ellipsis" style="font-weight:800;">{name}</span> }.into_view(),
-                                                                    }}
-                                                                    {auteur_type.as_ref().map(|at| view!{
-                                                                        <span class="amd-auteur-type">{format!("({})", at)}</span>
-                                                                    })}
-                                                                </div>
-                                                                {grp.clone().map(|g| view!{
-                                                                    <div style="margin-top:0.12rem;">
-                                                                        <span class="badge">{g}</span>
-                                                                    </div>
+                                    view!{
+                                        <div class="amd-card" role="listitem" style=format!("border-left:3px solid {};", dot)>
+                                            // Card header: Type chip + Amendement number + Sort
+                                            <div class="amd-card-header">
+                                                <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                                                    <span class={format!("amd-typechip {}", type_class(&e.t))}>{type_label(&e.t)}</span>
+                                                    <span style="font-weight:800;font-size:0.88rem;">
+                                                        {if amd_label.is_empty() { "Amd".to_string() } else { format!("Amd {}", amd_label) }}
+                                                    </span>
+                                                    <span class="amd-mono">{e.id.clone()}</span>
+                                                </div>
+                                                <div style="display:flex;align-items:center;gap:0.5rem;">
+                                                    {sort_view}
+                                                </div>
+                                            </div>
+
+                                            // Card body: key info in a grid
+                                            <div class="amd-card-body">
+                                                // Auteur
+                                                <div class="amd-card-field">
+                                                    <div class="amd-card-field-label">"Auteur"</div>
+                                                    <div style="display:flex;align-items:center;gap:.4rem;min-width:0;">
+                                                        <span class="amd-dot" style=format!("background:{dot};")></span>
+                                                        <div style="min-width:0;">
+                                                            <div style="display:flex;align-items:center;gap:0.3rem;flex-wrap:wrap;">
+                                                                {match href {
+                                                                    Some(h) => view!{ <A href=h class="amd-link"><span style="font-weight:700;">{name}</span></A> }.into_view(),
+                                                                    None => view!{ <span style="font-weight:800;">{name}</span> }.into_view(),
+                                                                }}
+                                                                {auteur_type.as_ref().map(|at| view!{
+                                                                    <span class="amd-auteur-type">{format!("({})", at)}</span>
                                                                 })}
                                                             </div>
+                                                            {grp.clone().map(|g| view!{
+                                                                <div style="margin-top:0.1rem;">
+                                                                    <span class="badge">{g}</span>
+                                                                </div>
+                                                            })}
                                                         </div>
-                                                    </td>
-                                                    // Cosignataires column: count badge + expandable list
-                                                    <td class="amd-td" style="text-align:center;">
-                                                        {if has_cosig {
-                                                            view!{
+                                                    </div>
+                                                </div>
+
+                                                // Cosignataires
+                                                <div class="amd-card-field">
+                                                    <div class="amd-card-field-label">"Cosignataires"</div>
+                                                    {if has_cosig {
+                                                        view!{
+                                                            <div>
                                                                 <button
                                                                     type="button"
                                                                     title=cosig_tooltip
@@ -722,7 +766,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                                                     on:click=move |_| set_show_cosig.update(|v| *v = !*v)
                                                                     class="amd-cosig-btn"
                                                                 >
-                                                                    {cosig_count}
+                                                                    {format!("{} cosig.", cosig_count)}
                                                                 </button>
                                                                 {move || if show_cosig.get() {
                                                                     view!{
@@ -748,61 +792,67 @@ pub fn AmendementsPage() -> impl IntoView {
                                                                 } else {
                                                                     view!{}.into_view()
                                                                 }}
-                                                            }.into_view()
-                                                        } else {
-                                                            view!{ <span style="color:var(--text-muted);">"0"</span> }.into_view()
-                                                        }}
-                                                    </td>
-                                                    // Amendement column: number + ID
-                                                    <td class="amd-td">
-                                                        <div style="display:flex;flex-direction:column;gap:0.12rem;">
-                                                            <span style="font-weight:800;">{if amd_label.is_empty() { "Amd".to_string() } else { format!("Amd {}", amd_label) }}</span>
-                                                            <span class="amd-mono">{e.id.clone()}</span>
+                                                            </div>
+                                                        }.into_view()
+                                                    } else {
+                                                        view!{ <span style="color:var(--text-muted);">"0"</span> }.into_view()
+                                                    }}
+                                                </div>
+
+                                                // Mission Ref
+                                                <div class="amd-card-field">
+                                                    <div class="amd-card-field-label">"Mission Ref"</div>
+                                                    {match mission_ref.as_ref() {
+                                                        Some(mr) => view!{
+                                                            <span class="amd-mono">{mr.clone()}</span>
+                                                        }.into_view(),
+                                                        None => view!{ <span style="color:var(--text-muted);">"—"</span> }.into_view(),
+                                                    }}
+                                                </div>
+
+                                                // Mission
+                                                <div class="amd-card-field">
+                                                    <div class="amd-card-field-label">"Mission"</div>
+                                                    {match mission.as_ref() {
+                                                        Some(m) if !m.is_empty() => view!{
+                                                            <span class="amd-mission-badge">{m.clone()}</span>
+                                                        }.into_view(),
+                                                        _ => view!{ <span style="color:var(--text-muted);">"—"</span> }.into_view(),
+                                                    }}
+                                                </div>
+
+                                                // Article
+                                                <div class="amd-card-field">
+                                                    <div class="amd-card-field-label">"Article"</div>
+                                                    <span class="badge">{e.art.clone().unwrap_or_else(|| "—".to_string())}</span>
+                                                </div>
+
+                                                // Dossier
+                                                <div class="amd-card-field">
+                                                    <div class="amd-card-field-label">"Dossier"</div>
+                                                    <span class="amd-ellipsis" style="font-size:0.84rem;">{dossier_title}</span>
+                                                </div>
+                                            </div>
+
+                                            // Exposé sommaire
+                                            {match expose {
+                                                Some(ref txt) if !txt.is_empty() => {
+                                                    let decoded = decode_html_entities(txt);
+                                                    let display_txt = truncate_text(&decoded, 200);
+                                                    view!{
+                                                        <div class="amd-card-expose">
+                                                            <div class="amd-card-field-label">"Exposé sommaire"</div>
+                                                            <div class="amd-expose-cell" title=decoded>
+                                                                {display_txt}
+                                                            </div>
                                                         </div>
-                                                    </td>
-                                                    // Dossier column
-                                                    <td class="amd-td">
-                                                        <div title=format!("{} — {}", dossier_id, dossier_title) style="display:flex;flex-direction:column;gap:0.12rem;min-width:0;">
-                                                            <span class="amd-ellipsis">{dossier_title}</span>
-                                                            <span class="amd-mono">{dossier_id}</span>
-                                                        </div>
-                                                    </td>
-                                                    // Mission column (separate for clarity)
-                                                    <td class="amd-td">
-                                                        {match mission.as_ref() {
-                                                            Some(m) => view!{
-                                                                <span class="amd-mission-badge">{m.clone()}</span>
-                                                            }.into_view(),
-                                                            None => view!{ <span style="color:var(--text-muted);">"—"</span> }.into_view(),
-                                                        }}
-                                                    </td>
-                                                    // Article column
-                                                    <td class="amd-td">
-                                                        <span class="badge">{e.art.clone().unwrap_or_else(|| "—".to_string())}</span>
-                                                    </td>
-                                                    // Sort column
-                                                    <td class="amd-td">
-                                                        {sort_view}
-                                                    </td>
-                                                    // Exposé sommaire column
-                                                    <td class="amd-td" style="max-width:320px;">
-                                                        {match expose {
-                                                            Some(ref txt) if !txt.is_empty() => {
-                                                                let display_txt = truncate_text(txt, 200);
-                                                                view!{
-                                                                    <div class="amd-expose-cell" title=txt.clone()>
-                                                                        {display_txt}
-                                                                    </div>
-                                                                }.into_view()
-                                                            }
-                                                            _ => view!{ <span style="color:var(--text-muted);">"—"</span> }.into_view(),
-                                                        }}
-                                                    </td>
-                                                </tr>
-                                            }
-                                        }).collect_view()}
-                                    </tbody>
-                                </table>
+                                                    }.into_view()
+                                                }
+                                                _ => view!{}.into_view(),
+                                            }}
+                                        </div>
+                                    }
+                                }).collect_view()}
                             </div>
                         }
                         .into_view()
