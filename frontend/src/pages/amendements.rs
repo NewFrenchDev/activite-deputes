@@ -739,6 +739,7 @@ pub fn AmendementsPage() -> impl IntoView {
                         let total = filtered.len();
                         let total_events = events.len();
                         let page = current_page.get();
+                        // Ceiling division: total pages = ⌈total / psize⌉
                         let total_pages = if total == 0 { 1 } else { (total + psize - 1) / psize };
                         let page = page.min(total_pages).max(1);
                         let skip = (page - 1) * psize;

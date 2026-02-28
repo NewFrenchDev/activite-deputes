@@ -1058,7 +1058,7 @@ fn parse_amendement(v: &serde_json::Value) -> Option<Amendement> {
             // mais portent l'information dans corps.cartoucheInformatif.
             v["corps"]["cartoucheInformatif"].as_str()
                 .map(|s| normalize_expose_sommaire(s, EXPOSE_MAX_CHARS))
-                .filter(|s| s.contains("Retiré avant publication") || s.contains("retiré avant publication"))
+                .filter(|s| s.to_lowercase().contains("retiré avant publication"))
         });
 
     Some(Amendement {
