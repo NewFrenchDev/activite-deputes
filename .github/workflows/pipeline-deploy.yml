@@ -1,9 +1,6 @@
 name: Pipeline & Deploy
 
 on:
-  schedule:
-    # Dimanche à 03:00 UTC
-    - cron: '0 3 * * 0'
   workflow_dispatch:
   push:
     branches: [main]
@@ -149,13 +146,6 @@ jobs:
           trunk build --release --dist ../dist --public-url "$PUBLIC_URL"
 
 
-      # Les données arrivent APRÈS le build (trunk aurait écrasé docs/)
-      - name: Download site data
-        uses: actions/download-artifact@v4
-        with:
-          name: site-data
-          path: dist/
-
       # Nécessaire pour que le refresh / accès direct aux routes SPA ne donne pas 404
       - name: Create 404.html for GitHub Pages SPA routing
         shell: bash
@@ -197,6 +187,20 @@ jobs:
           sed -i "s|__REPO_BASE__|$REPO_BASE|g" dist/404.html
           echo "404.html generated:"
           head -20 dist/404.html
+
+      # Sauvegarde du build frontend (sans data) pour le workflow de mise à jour data
+      - name: Cache frontend build
+        uses: actions/cache/save@v4
+        with:
+          path: dist/
+          key: frontend-dist-${{ github.run_id }}
+
+      # Les données arrivent APRÈS le build (trunk aurait écrasé docs/)
+      - name: Download site data
+        uses: actions/download-artifact@v4
+        with:
+          name: site-data
+          path: dist/
             
       - name: Debug site structure before artifact upload
         shell: bash
