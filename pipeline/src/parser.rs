@@ -69,9 +69,10 @@ fn normalize_profession_label(raw: &str) -> String {
 const EXPOSE_MAX_CHARS: usize = 500;
 
 /// Nettoie un exposé sommaire brut issu de l'open data :
-/// 1. Supprime les balises HTML (ex: <p>, <br>, &nbsp;)
-/// 2. Collapse les espaces multiples
-/// 3. Tronque à `max_chars` caractères avec "…"
+/// 1. Supprime les balises HTML (ex: <p>, <br>)
+/// 2. Décode quelques entités HTML courantes (ex: &nbsp;, &amp;, &lt;, &gt;, &quot;, &#39;)
+/// 3. Collapse les espaces multiples
+/// 4. Tronque à `max_chars` caractères avec "…"
 fn normalize_expose_sommaire(raw: &str, max_chars: usize) -> String {
     // Strip HTML tags
     let mut out = String::with_capacity(raw.len());
