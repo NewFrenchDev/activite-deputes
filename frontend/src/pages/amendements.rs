@@ -37,9 +37,24 @@ fn type_class(t: &str) -> &'static str {
 }
 
 fn truncate_text(text: &str, max_chars: usize) -> String {
-    if text.chars().count() > max_chars {
-        format!("{}…", text.chars().take(max_chars).collect::<String>())
+    let mut result = String::new();
+    let mut count = 0usize;
+    let mut truncated = false;
+
+    for ch in text.chars() {
+        if count == max_chars {
+            truncated = true;
+            break;
+        }
+        result.push(ch);
+        count += 1;
+    }
+
+    if truncated {
+        result.push('…');
+        result
     } else {
+        // No truncation needed; return the original string.
         text.to_string()
     }
 }
