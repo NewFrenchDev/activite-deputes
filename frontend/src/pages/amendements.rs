@@ -580,25 +580,34 @@ pub fn AmendementsPage() -> impl IntoView {
                                         <span style="color:var(--text-muted);font-size:0.78rem;">"Exposés des amendements"</span>
                                     </div>
                                     <div style="max-height:400px;overflow-y:auto;">
-                                        {events.iter().filter(|e| e.exp.is_some()).take(10).map(|e| {
-                                            let dep = e.aid.as_deref().and_then(|id| dep_map.get(id));
-                                            let (name, grp, _) = deputy_display(dep);
-                                            let dot = groupe_color(grp.as_deref());
-                                            let expose = e.exp.clone().unwrap_or_default();
-                                            let type_chip = type_class(&e.t);
-                                            view! {
-                                                <div style=format!("margin:0.6rem 0;padding:0.65rem;border-left:3px solid {};background:rgba(255,255,255,.02);border-radius:4px;", dot)>
-                                                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;flex-wrap:wrap;">
-                                                        <span class={format!("amd-typechip {}", type_chip)} style="font-size:0.7rem;">{type_label(&e.t)}</span>
-                                                        <span style="font-weight:700;font-size:0.84rem;">{name}</span>
-                                                        {grp.map(|g| view!{ <span class="badge" style="font-size:0.7rem;">{g}</span> })}
+                                        {
+                                            let mut seen_ids: HashSet<&str> = HashSet::new();
+                                            let unique_events: Vec<&AmendementEvent> = events.iter()
+                                                .filter(|e| e.exp.is_some() && seen_ids.insert(e.id.as_str()))
+                                                .take(10)
+                                                .collect();
+                                            let has_any = !unique_events.is_empty();
+                                            let cards = unique_events.into_iter().map(|e| {
+                                                let dep = e.aid.as_deref().and_then(|id| dep_map.get(id));
+                                                let (name, grp, _) = deputy_display(dep);
+                                                let dot = groupe_color(grp.as_deref());
+                                                let expose = e.exp.clone().unwrap_or_default();
+                                                let type_chip = type_class(&e.t);
+                                                view! {
+                                                    <div style=format!("margin:0.6rem 0;padding:0.65rem;border-left:3px solid {};background:rgba(255,255,255,.02);border-radius:4px;", dot)>
+                                                        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;flex-wrap:wrap;">
+                                                            <span class={format!("amd-typechip {}", type_chip)} style="font-size:0.7rem;">{type_label(&e.t)}</span>
+                                                            <span style="font-weight:700;font-size:0.84rem;">{name}</span>
+                                                            {grp.map(|g| view!{ <span class="badge" style="font-size:0.7rem;">{g}</span> })}
+                                                        </div>
+                                                        <div style="color:var(--text-secondary);font-size:0.84rem;line-height:1.4;">
+                                                            {truncate_text(&expose, 200)}
+                                                        </div>
                                                     </div>
-                                                    <div style="color:var(--text-secondary);font-size:0.84rem;line-height:1.4;">
-                                                        {truncate_text(&expose, 200)}
-                                                    </div>
-                                                </div>
-                                            }
-                                        }).collect_view()}
+                                                }
+                                            }).collect_view();
+                                            if has_any { cards.into_view() } else { view!{}.into_view() }
+                                        }
                                         {if events.iter().filter(|e| e.exp.is_some()).count() == 0 {
                                             view! {
                                                 <div style="color:var(--text-muted);font-size:0.86rem;padding:0.75rem 0;">
@@ -672,7 +681,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                                 .collect::<Vec<_>>()
                                                 .join(", ");
 
-                                            // Use dep_map directly in closures or via a shared handle defined outside the loop.
+                                            let dep_map_clone = dep_map.clone();
 
                                             view!{
                                                 <tr>

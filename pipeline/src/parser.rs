@@ -998,6 +998,7 @@ fn parse_amendement(v: &serde_json::Value) -> Option<Amendement> {
 
     // Exposé sommaire — nettoyé (HTML strippé, whitespace collapsé, longueur limitée)
     let expose_sommaire = v["exposeSommaire"].as_str()
+        .or_else(|| v["corps"]["contenuAuteur"]["exposeSommaire"].as_str())
         .map(|s| normalize_expose_sommaire(s, EXPOSE_MAX_CHARS))
         .filter(|s| !s.is_empty());
 
@@ -1485,5 +1486,19 @@ mod tests {
         assert_eq!(result.cosignataires_ids, Vec::<String>::new());
         assert_eq!(result.expose_sommaire, None);
         assert!(!result.adopte);
+    }
+
+    #[test]
+    fn parse_amendement_expose_from_contenu_auteur() {
+        let json = serde_json::json!({
+            "uid": "AMD-NESTED-EXPOSE",
+            "corps": {
+                "contenuAuteur": {
+                    "exposeSommaire": "<p>Texte sous contenuAuteur.</p>"
+                }
+            }
+        });
+        let result = parse_amendement(&json).expect("should parse nested expose");
+        assert_eq!(result.expose_sommaire, Some("Texte sous contenuAuteur.".to_string()));
     }
 }
