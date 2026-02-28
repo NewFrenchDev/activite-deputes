@@ -208,6 +208,7 @@ pub fn AmendementsPage() -> impl IntoView {
     let (filter, set_filter) = create_signal(String::new());
     let (type_filter, set_type_filter) = create_signal(String::new()); // "", "DEPOT", "EXAMEN", "SORT", "CIRCULATION"
     let (page_size, set_page_size) = create_signal(20usize);
+    let (current_page, set_current_page) = create_signal(1usize);
     let (show_undated, set_show_undated) = create_signal(false);
 
     // ── Ressources (chargement asynchrone) ─────────────────────────────────
@@ -294,6 +295,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                 let v = event_target_value(&ev);
                                 set_selected_month.set(Some(v));
                                 set_filter.set(String::new());
+                                set_current_page.set(1);
                             }
                         >
                             {move || {
@@ -325,6 +327,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                 }
                                 set_selected_day.set(Some(v));
                                 set_filter.set(String::new());
+                                set_current_page.set(1);
                             }
                             style="padding:0.5rem 0.75rem;border:1px solid var(--bg-border);border-radius:6px;background:var(--bg-secondary);color:var(--text-primary);font-size:0.86rem;font-weight:500;"
                         />
@@ -421,6 +424,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                                 on:click=move |_| {
                                                     set_selected_day.set(Some(d.clone()));
                                                     set_filter.set(String::new());
+                                                    set_current_page.set(1);
                                                 }
                                             >
                                                 <div class="amd-daymeta">
@@ -618,12 +622,12 @@ pub fn AmendementsPage() -> impl IntoView {
                                     placeholder="ex: adopté, PLF, Durand, 123..."
                                     aria-label="Filtrer les évènements"
                                     prop:value=move || filter.get()
-                                    on:input=move |ev| set_filter.set(event_target_value(&ev))
+                                    on:input=move |ev| { set_filter.set(event_target_value(&ev)); set_current_page.set(1); }
                                     style="flex:1;min-width:140px;"
                                 />
                                 <select
                                     aria-label="Filtrer par type"
-                                    on:change=move |ev| set_type_filter.set(event_target_value(&ev))
+                                    on:change=move |ev| { set_type_filter.set(event_target_value(&ev)); set_current_page.set(1); }
                                     class="amd-select"
                                 >
                                     <option value="" selected=move || type_filter.get().is_empty()>"Tous types"</option>
@@ -640,6 +644,7 @@ pub fn AmendementsPage() -> impl IntoView {
                                     on:change=move |ev| {
                                         if let Ok(n) = event_target_value(&ev).parse::<usize>() {
                                             set_page_size.set(n);
+                                            set_current_page.set(1);
                                         }
                                     }
                                     class="amd-select amd-select-sm"
@@ -733,12 +738,16 @@ pub fn AmendementsPage() -> impl IntoView {
                         let psize = page_size.get();
                         let total = filtered.len();
                         let total_events = events.len();
-                        let display: Vec<AmendementEvent> = filtered.into_iter().take(psize).collect();
+                        let page = current_page.get();
+                        let total_pages = if total == 0 { 1 } else { (total + psize - 1) / psize };
+                        let page = page.min(total_pages).max(1);
+                        let skip = (page - 1) * psize;
+                        let display: Vec<AmendementEvent> = filtered.into_iter().skip(skip).take(psize).collect();
                         let shown = display.len();
 
                         view! {
                             <div style="color:var(--text-muted);font-size:0.78rem;margin-bottom:0.5rem;">
-                                {format!("{} évènements • {} filtrés • {} affichés", total_events, total, shown)}
+                                {format!("{} évènements • {} filtrés • page {}/{} • {} affichés", total_events, total, page, total_pages, shown)}
                             </div>
 
                             <div class="amd-cards-list" role="list" aria-label="Évènements amendements du jour">
@@ -902,12 +911,11 @@ pub fn AmendementsPage() -> impl IntoView {
                                             {match expose {
                                                 Some(ref txt) if !txt.is_empty() => {
                                                     let decoded = decode_html_entities(txt);
-                                                    let display_txt = truncate_text(&decoded, 200);
                                                     view!{
                                                         <div class="amd-card-expose">
                                                             <div class="amd-card-field-label">"Exposé sommaire"</div>
-                                                            <div class="amd-expose-cell" title=decoded>
-                                                                {display_txt}
+                                                            <div class="amd-expose-cell">
+                                                                {decoded}
                                                             </div>
                                                         </div>
                                                     }.into_view()
@@ -919,10 +927,59 @@ pub fn AmendementsPage() -> impl IntoView {
                                 }).collect_view()}
                             </div>
 
-                            {if total > shown {
+                            {if total_pages > 1 {
+                                // Build visible page numbers: first, last, current ± 2
+                                let mut pages: Vec<usize> = Vec::new();
+                                pages.push(1);
+                                let lo = if page > 2 { page - 2 } else { 1 };
+                                let hi = (page + 2).min(total_pages);
+                                for p in lo..=hi { pages.push(p); }
+                                pages.push(total_pages);
+                                pages.sort();
+                                pages.dedup();
+                                // Build items with optional "…" separators
+                                let mut items: Vec<(Option<usize>, bool)> = Vec::new(); // (page_num or None=ellipsis, is_current)
+                                let mut prev: usize = 0;
+                                for &p in &pages {
+                                    if prev > 0 && p > prev + 1 {
+                                        items.push((None, false)); // ellipsis
+                                    }
+                                    items.push((Some(p), p == page));
+                                    prev = p;
+                                }
                                 view! {
-                                    <div style="margin-top:0.6rem;color:var(--text-muted);font-size:0.82rem;text-align:center;">
-                                        {format!("{} évènements supplémentaires non affichés. Augmentez le nombre par page ou affinez le filtre.", total - shown)}
+                                    <div style="display:flex;align-items:center;justify-content:center;gap:0.35rem;margin-top:0.75rem;flex-wrap:wrap;">
+                                        <button
+                                            type="button"
+                                            class="btn"
+                                            disabled=move || current_page.get() <= 1
+                                            on:click=move |_| set_current_page.update(|p| { if *p > 1 { *p -= 1; } })
+                                            style="min-width:2.2rem;padding:0.35rem 0.6rem;font-size:0.82rem;"
+                                        >"◀"</button>
+                                        {items.into_iter().map(|(pnum, is_current)| {
+                                            match pnum {
+                                                None => view!{ <span style="color:var(--text-muted);font-size:0.82rem;">"…"</span> }.into_view(),
+                                                Some(p) => {
+                                                    let style = if is_current {
+                                                        "min-width:2.2rem;padding:0.35rem 0.6rem;font-size:0.82rem;font-weight:800;background:var(--accent);color:#fff;border:none;border-radius:4px;cursor:default;"
+                                                    } else {
+                                                        "min-width:2.2rem;padding:0.35rem 0.6rem;font-size:0.82rem;"
+                                                    };
+                                                    view!{
+                                                        <button type="button" class="btn" style=style
+                                                            on:click=move |_| set_current_page.set(p)
+                                                        >{p}</button>
+                                                    }.into_view()
+                                                }
+                                            }
+                                        }).collect_view()}
+                                        <button
+                                            type="button"
+                                            class="btn"
+                                            disabled=move || current_page.get() >= total_pages
+                                            on:click=move |_| set_current_page.update(|p| { if *p < total_pages { *p += 1; } })
+                                            style="min-width:2.2rem;padding:0.35rem 0.6rem;font-size:0.82rem;"
+                                        >"▶"</button>
                                     </div>
                                 }.into_view()
                             } else {

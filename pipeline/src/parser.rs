@@ -65,8 +65,8 @@ fn normalize_profession_label(raw: &str) -> String {
 }
 
 /// Longueur maximale (en caractères) de l'exposé sommaire exporté.
-/// Au-delà, le texte est tronqué avec "…".
-const EXPOSE_MAX_CHARS: usize = 500;
+/// 0 = pas de troncature, le texte complet est conservé.
+const EXPOSE_MAX_CHARS: usize = 0;
 
 /// Nettoie un exposé sommaire brut issu de l'open data :
 /// Decode numeric HTML entities: &#xHEX; and &#DEC; → Unicode character
@@ -1048,11 +1048,18 @@ fn parse_amendement(v: &serde_json::Value) -> Option<Amendement> {
     let mission_visee = pft["missionVisee"]["libelleMission"].as_str().map(String::from);
     let mission_ref = pft["missionVisee"]["missionRef"].as_str().map(String::from);
 
-    // Exposé sommaire — nettoyé (HTML strippé, whitespace collapsé, longueur limitée)
+    // Exposé sommaire — nettoyé (HTML strippé, whitespace collapsé)
     let expose_sommaire = v["exposeSommaire"].as_str()
         .or_else(|| v["corps"]["contenuAuteur"]["exposeSommaire"].as_str())
         .map(|s| normalize_expose_sommaire(s, EXPOSE_MAX_CHARS))
-        .filter(|s| !s.is_empty());
+        .filter(|s| !s.is_empty())
+        .or_else(|| {
+            // Fallback : certains amendements retirés avant publication n'ont pas d'exposé
+            // mais portent l'information dans corps.cartoucheInformatif.
+            v["corps"]["cartoucheInformatif"].as_str()
+                .map(|s| normalize_expose_sommaire(s, EXPOSE_MAX_CHARS))
+                .filter(|s| s.contains("Retiré avant publication") || s.contains("retiré avant publication"))
+        });
 
     Some(Amendement {
         id,
@@ -1566,5 +1573,51 @@ mod tests {
         });
         let result = parse_amendement(&json).expect("should parse nested expose");
         assert_eq!(result.expose_sommaire, Some("Texte sous contenuAuteur.".to_string()));
+    }
+
+    #[test]
+    fn parse_amendement_retire_avant_publication_fallback() {
+        // When expose_sommaire is absent, corps.cartoucheInformatif with "Retiré avant publication"
+        // should be used as expose_sommaire.
+        let json = serde_json::json!({
+            "uid": "AMD-RETIRE",
+            "corps": {
+                "cartoucheInformatif": "Retiré avant publication"
+            }
+        });
+        let result = parse_amendement(&json).expect("should parse");
+        assert_eq!(result.expose_sommaire, Some("Retiré avant publication".to_string()));
+    }
+
+    #[test]
+    fn parse_amendement_retire_avant_publication_not_used_if_expose_present() {
+        // When expose_sommaire is present, cartoucheInformatif should NOT override it.
+        let json = serde_json::json!({
+            "uid": "AMD-WITH-EXPOSE",
+            "exposeSommaire": "Un vrai exposé",
+            "corps": {
+                "cartoucheInformatif": "Retiré avant publication"
+            }
+        });
+        let result = parse_amendement(&json).expect("should parse");
+        assert_eq!(result.expose_sommaire, Some("Un vrai exposé".to_string()));
+    }
+
+    #[test]
+    fn parse_amendement_etat_libelle_as_sort() {
+        // When cycleDeVie.sort is absent, etat.libelle should be used as sort.
+        let json = serde_json::json!({
+            "uid": "AMD-ETAT",
+            "cycleDeVie": {
+                "etatDesTraitements": {
+                    "etat": {
+                        "libelle": "A discuter"
+                    }
+                }
+            }
+        });
+        let result = parse_amendement(&json).expect("should parse");
+        assert_eq!(result.sort, Some("A discuter".to_string()));
+        assert!(!result.adopte);
     }
 }
