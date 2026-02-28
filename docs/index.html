@@ -555,11 +555,47 @@
 
     .amd-sidecards {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: .75rem;
       margin-top: .75rem;
     }
-    @media (max-width: 900px) { .amd-sidecards { grid-template-columns: 1fr; } }
+
+    .amd-journal-controls {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+    .amd-filter-row {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      flex: 1;
+      min-width: 200px;
+    }
+    .amd-page-size-row {
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      white-space: nowrap;
+    }
+    .amd-select {
+      padding: .35rem .55rem;
+      border-radius: 8px;
+      border: 1px solid var(--bg-border);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: .82rem;
+      cursor: pointer;
+    }
+    .amd-select-sm {
+      padding: .25rem .4rem;
+      font-size: .78rem;
+    }
+    @media (max-width: 560px) {
+      .amd-journal-controls { flex-direction: column; align-items: stretch; }
+      .amd-filter-row { flex-direction: column; }
+    }
 
     .amd-rank { display: flex; flex-direction: column; gap: .45rem; }
     .amd-rankitem {
@@ -689,6 +725,50 @@
       word-break: break-word;
     }
 
+    /* Card layout for amendements events */
+    .amd-cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .amd-card {
+      background: rgba(255,255,255,.02);
+      border: 1px solid var(--bg-border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+    }
+    .amd-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .amd-card-body {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.55rem 1.2rem;
+    }
+    .amd-card-field {
+      min-width: 0;
+    }
+    .amd-card-field-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 750;
+      margin-bottom: 0.15rem;
+    }
+    .amd-card-expose {
+      margin-top: 0.5rem;
+      padding-top: 0.45rem;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+
     /* Loading placeholder (spinner + text) */
     .loading-box {
       display: flex;
@@ -742,15 +822,15 @@
       }
     }
   </style>
-<link rel="modulepreload" href="/activite-deputes/frontend-27db6f816af31364.js" crossorigin="anonymous" integrity="sha384-G3T743EP1r6C9K+XcssGdK78SdbGUvSqp10Kr8cetBs/naJUc1zcsskaefpfmlJi"><link rel="preload" href="/activite-deputes/frontend-27db6f816af31364_bg.wasm" crossorigin="anonymous" integrity="sha384-mZDJ/bLxsrGLWGzgMo4qoMpg6Rg9umbFBfJJozD98NKaoEWywyFFhmNKdVTyRVTL" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="/activite-deputes/frontend-9b8ec8952847165a.js" crossorigin="anonymous" integrity="sha384-Zeic1FtIY/S7l7iAnwn98G7gMXUQNdUZ88BrTjg0ycbjx7HF0+zgH01Dq3QiCRbc"><link rel="preload" href="/activite-deputes/frontend-9b8ec8952847165a_bg.wasm" crossorigin="anonymous" integrity="sha384-381tzsW5BYvTm6KtuJ9GTX9lXfYkbS9X+tvOEw7Nojdqtaintq5MfLV+z78qKHqO" as="fetch" type="application/wasm"></head>
 <body class="dark">
   <div id="app"></div>
 
   <!-- WASM bundle (généré par trunk) -->
   
 <script type="module">
-import init, * as bindings from '/activite-deputes/frontend-27db6f816af31364.js';
-const wasm = await init({ module_or_path: '/activite-deputes/frontend-27db6f816af31364_bg.wasm' });
+import init, * as bindings from '/activite-deputes/frontend-9b8ec8952847165a.js';
+const wasm = await init({ module_or_path: '/activite-deputes/frontend-9b8ec8952847165a_bg.wasm' });
 
 
 window.wasmBindings = bindings;
