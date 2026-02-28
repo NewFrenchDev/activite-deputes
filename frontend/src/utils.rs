@@ -46,7 +46,18 @@ pub fn matches_search(haystack: &str, needle: &str) -> bool {
     if needle.is_empty() {
         return true;
     }
-    normalize_search(haystack).contains(&normalize_search(needle))
+    let normalized_needle = normalize_search(needle);
+    normalize_search(haystack).contains(&normalized_needle)
+}
+
+/// Like `matches_search`, but the caller passes an already-normalized needle.
+/// Use this when filtering a list with the same needle to avoid re-normalizing it
+/// on every call (O(n) saved per item).
+pub fn matches_search_normalized(haystack: &str, needle_normalized: &str) -> bool {
+    if needle_normalized.is_empty() {
+        return true;
+    }
+    normalize_search(haystack).contains(needle_normalized)
 }
 
 
