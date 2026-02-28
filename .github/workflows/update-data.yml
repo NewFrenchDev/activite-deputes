@@ -1,0 +1,129 @@
+name: Update Data
+
+on:
+  schedule:
+    # Tous les jours à 03:00 UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+
+  # ─────────────────────────────────────────────
+  # JOB 1 : Scraping + génération des JSON
+  # ─────────────────────────────────────────────
+  pipeline:
+    name: Run ETL Pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Rust pipeline
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            pipeline/target
+          key: ${{ runner.os }}-pipeline-${{ hashFiles('pipeline/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-pipeline-
+
+      - name: Restore pipeline work dir
+        uses: actions/cache@v4
+        with:
+          path: pipeline/.work/
+          key: pipeline-work-${{ github.ref_name }}-v1
+          restore-keys: |
+            pipeline-work-${{ github.ref_name }}-
+            pipeline-work-
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Create work dirs
+        run: mkdir -p pipeline/.work pipeline/.temp_out docs/data docs/exports
+
+      - name: Run pipeline
+        run: cargo run --release --manifest-path pipeline/Cargo.toml
+        env:
+          RUST_LOG: pipeline=info
+
+      # Le pipeline écrit dans docs/data/ et docs/exports/
+      - name: Upload generated data
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-data
+          path: |
+            docs/data/
+            docs/exports/
+          retention-days: 1
+
+  # ─────────────────────────────────────────────
+  # JOB 2 : Assemblage frontend caché + data fraîches → déploiement
+  # ─────────────────────────────────────────────
+  deploy:
+    name: Deploy updated data
+    runs-on: ubuntu-latest
+    needs: pipeline
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      # Restaure le dernier build frontend (sauvegardé par pipeline-deploy.yml)
+      - name: Restore cached frontend build
+        uses: actions/cache/restore@v4
+        id: restore-frontend
+        with:
+          path: dist/
+          key: frontend-dist-lookup
+          restore-keys: frontend-dist-
+
+      - name: Verify frontend cache restored
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f dist/index.html ]; then
+            echo "::error::Le cache du build frontend est introuvable. Lancez le workflow 'Pipeline & Deploy' (le cache expire après 7 jours d'inactivité)."
+            exit 1
+          fi
+          echo "Frontend cache restored successfully"
+          ls -lh dist/index.html dist/404.html
+
+      - name: Download fresh site data
+        uses: actions/download-artifact@v4
+        with:
+          name: site-data
+          path: dist/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Sanity check
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -f dist/404.html
+          test -f dist/data/status.json
+          ls -lh dist/index.html dist/404.html dist/data/status.json
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
