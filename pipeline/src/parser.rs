@@ -1464,7 +1464,7 @@ mod tests {
         assert_eq!(result.numero, Some("42".to_string()));
         assert_eq!(result.auteur_id, Some("PA1234".to_string()));
         assert_eq!(result.auteur_type, Some("Député".to_string()));
-        assert_eq!(result.cosignataires_ids, vec!["PA5678", "PA9999"]);
+        assert_eq!(result.cosignataires_ids, vec!["PA5678".to_string(), "PA9999".to_string()]);
         assert!(result.adopte);
         assert_eq!(result.date_depot, Some(NaiveDate::from_ymd_opt(2024, 1, 15).unwrap()));
         assert_eq!(result.date_sort, Some(NaiveDate::from_ymd_opt(2024, 1, 20).unwrap()));
