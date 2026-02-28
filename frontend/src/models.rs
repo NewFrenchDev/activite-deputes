@@ -190,6 +190,9 @@ pub struct AmendementEvent {
     /// Mission visée
     #[serde(default)]
     pub mis: Option<String>,
+    /// Mission ref
+    #[serde(default)]
+    pub mref: Option<String>,
     /// Exposé sommaire
     #[serde(default)]
     pub exp: Option<String>,

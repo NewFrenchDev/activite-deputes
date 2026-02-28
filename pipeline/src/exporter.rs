@@ -132,6 +132,9 @@ struct AmdEvent {
     /// Mission visée
     #[serde(skip_serializing_if = "Option::is_none")]
     mis: Option<String>,
+    /// Mission ref
+    #[serde(skip_serializing_if = "Option::is_none")]
+    mref: Option<String>,
     /// Exposé sommaire
     #[serde(skip_serializing_if = "Option::is_none")]
     exp: Option<String>,
@@ -206,6 +209,7 @@ fn write_amendements_calendar_json(data_dir: &Path, agg: &AllAggregates, generat
                 s: None,
                 ok: false,
                 mis: a.mission_visee.clone(),
+                mref: a.mission_ref.clone(),
                 exp: a.expose_sommaire.clone(),
             }));
         }
@@ -225,6 +229,7 @@ fn write_amendements_calendar_json(data_dir: &Path, agg: &AllAggregates, generat
                 s: None,
                 ok: false,
                 mis: a.mission_visee.clone(),
+                mref: a.mission_ref.clone(),
                 exp: a.expose_sommaire.clone(),
             }));
         }
@@ -244,6 +249,7 @@ fn write_amendements_calendar_json(data_dir: &Path, agg: &AllAggregates, generat
                 s: None,
                 ok: false,
                 mis: a.mission_visee.clone(),
+                mref: a.mission_ref.clone(),
                 exp: a.expose_sommaire.clone(),
             }));
         }
@@ -263,6 +269,7 @@ fn write_amendements_calendar_json(data_dir: &Path, agg: &AllAggregates, generat
                 s: a.sort.clone(),
                 ok: a.adopte,
                 mis: a.mission_visee.clone(),
+                mref: a.mission_ref.clone(),
                 exp: a.expose_sommaire.clone(),
             }));
         }
@@ -279,6 +286,7 @@ fn write_amendements_calendar_json(data_dir: &Path, agg: &AllAggregates, generat
                 "s": a.sort,
                 "ok": a.adopte,
                 "mis": a.mission_visee,
+                "mref": a.mission_ref,
                 "exp": a.expose_sommaire,
             }));
         }

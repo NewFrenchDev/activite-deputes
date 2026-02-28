@@ -154,6 +154,8 @@ pub struct Amendement {
     #[serde(default)]
     pub mission_visee: Option<String>,
     #[serde(default)]
+    pub mission_ref: Option<String>,
+    #[serde(default)]
     pub expose_sommaire: Option<String>,
 }
 

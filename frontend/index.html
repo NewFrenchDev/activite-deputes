@@ -689,6 +689,50 @@
       word-break: break-word;
     }
 
+    /* Card layout for amendements events */
+    .amd-cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .amd-card {
+      background: rgba(255,255,255,.02);
+      border: 1px solid var(--bg-border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+    }
+    .amd-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .amd-card-body {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.55rem 1.2rem;
+    }
+    .amd-card-field {
+      min-width: 0;
+    }
+    .amd-card-field-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 750;
+      margin-bottom: 0.15rem;
+    }
+    .amd-card-expose {
+      margin-top: 0.5rem;
+      padding-top: 0.45rem;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+
     /* Loading placeholder (spinner + text) */
     .loading-box {
       display: flex;
